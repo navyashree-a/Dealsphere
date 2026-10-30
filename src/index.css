@@ -1,0 +1,222 @@
+/* ==========================================================================
+   DealSphere — base layer: design tokens, reset, typography
+   ========================================================================== */
+
+:root {
+  /* Surfaces — layered charcoal, darkest at the back */
+  --bg: #171717;
+  --bg-2: #1d1d1d;
+  --paper: #242424; /* cards */
+  --paper-soft: #2d2d2d; /* elevated surfaces, menus, tooltips */
+  --paper-hi: #363636; /* raised controls */
+
+  /* Text */
+  --ink: #f5f5f0;
+  --ink-2: #d9d9d2;
+  --muted: #a6a6a0;
+  --faint: #85857f;
+
+  /* Accent */
+  --lime: #b7e531;
+  --lime-soft: rgba(183, 229, 49, 0.12);
+  --lime-deep: #8fbb17;
+  --lime-text: #c4ec4f; /* lime for text on charcoal */
+  --on-lime: #171717; /* text placed on lime */
+
+  /* Feedback */
+  --danger: #ff8a6b;
+  --danger-soft: rgba(255, 120, 90, 0.12);
+  --success: #b7e531;
+  --heart: #ff7a59;
+
+  /* Lines & depth */
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --line-hover: rgba(255, 255, 255, 0.32);
+  --highlight: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-sm: var(--highlight), 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 10px -4px rgba(0, 0, 0, 0.35);
+  --shadow-md: var(--highlight), 0 2px 4px rgba(0, 0, 0, 0.3), 0 12px 24px -10px rgba(0, 0, 0, 0.5),
+    0 28px 48px -24px rgba(0, 0, 0, 0.55);
+  --shadow-lg: var(--highlight), 0 4px 8px rgba(0, 0, 0, 0.3), 0 24px 44px -16px rgba(0, 0, 0, 0.6),
+    0 56px 90px -40px rgba(0, 0, 0, 0.7);
+  --ring: 0 0 0 4px rgba(183, 229, 49, 0.32);
+
+  /* Shape */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
+
+  /* Type */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --header-h: 72px;
+
+  color-scheme: dark;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 620px at 80% -12%, rgba(183, 229, 49, 0.09), transparent 62%),
+    radial-gradient(800px 520px at -12% 18%, rgba(255, 255, 255, 0.035), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  overflow-x: clip;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--ink);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--lime);
+  color: var(--on-lime);
+}
+
+/* ---------- Cursor spotlight (components/CursorSpotlight.jsx) ----------
+   A fixed, click-through layer above the page. "screen" blending only adds
+   light, so content underneath is brightened rather than covered and text keeps
+   its contrast. The container clips the glow, so it never adds scrollbars. */
+.cursor-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 90; /* above modals (80) so the light reaches them too */
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.cursor-spotlight__glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 640px;
+  height: 640px;
+  margin: -320px 0 0 -320px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(183, 229, 49, 0.12),
+    rgba(183, 229, 49, 0.05) 45%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  will-change: transform;
+}
+
+.cursor-spotlight__glow.is-visible {
+  opacity: 1;
+}
+
+/* No spotlight on touch-only devices, for reduced motion, in high-contrast
+   (forced colours) mode, or when printing. */
+@media (hover: none), (prefers-reduced-motion: reduce), (forced-colors: active), print {
+  .cursor-spotlight {
+    display: none;
+  }
+}
+
+/* Shown while the lazily loaded admin bundle arrives */
+.adm-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
