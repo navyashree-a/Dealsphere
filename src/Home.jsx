@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TopBar from "./components/TopBar";
 import DealCard from "./components/DealCard";
 import CouponCode from "./components/CouponCode";
@@ -9,7 +9,17 @@ import useTilt from "./components/useTilt";
 import ViewDealLink from "./components/ViewDealLink";
 import StoreLogo from "./components/StoreLogo";
 import DotPattern from "./components/DotPattern";
-import { deals as searchDeals, categories, stores, toneFor } from "./data/deals";
+import TopicCard from "./components/TopicCard";
+import TopicOffers from "./components/TopicOffers";
+import { categories, stores, toneFor } from "./data/deals";
+import { useDeals } from "./data/dealsContext";
+import { OFFER_TIME_ZONE, expiryLabel } from "./data/feeds/normalizeFeed";
+import { offerTypeLabel, summarizeTopics } from "./data/topics";
+
+const PAGE_SIZE = 9;
+
+const formatExpiry = (iso) =>
+  new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: OFFER_TIME_ZONE });
 
 const navLinks = [
   { href: "#home", label: "Home" },
@@ -33,6 +43,9 @@ function Home({
   savedDeals = [],
   initialDeal = null,
   onDealOpened,
+  initialTopicId = null,
+  onTopicOpened,
+  onRequestTopicSignIn,
   isLoggedIn = false,
   onOpenProfile,
   onSetAlert,
@@ -43,20 +56,29 @@ function Home({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedDeal, setSelectedDeal] = useState(initialDeal);
+  const [selectedTopicId, setSelectedTopicId] = useState(initialTopicId);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const searchDeals = useDeals();
+  const topicSummaries = useMemo(() => summarizeTopics(searchDeals), [searchDeals]);
+  // Topic offer pages are only shown to signed-in customers.
+  const selectedTopic = isLoggedIn ? topicSummaries.find((topic) => topic.id === selectedTopicId) || null : null;
   const stageTilt = useTilt(10);
 
   useEffect(() => {
     if (onDealOpened) {
       onDealOpened();
     }
+    if (onTopicOpened) {
+      onTopicOpened();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (selectedDeal) {
+    if (selectedDeal || selectedTopicId) {
       window.scrollTo(0, 0);
     }
-  }, [selectedDeal]);
+  }, [selectedDeal, selectedTopicId]);
 
   const filteredSearchDeals = searchDeals.filter((deal) => {
     const query = searchTerm.trim().toLowerCase();
@@ -66,14 +88,17 @@ function Home({
       deal.store.toLowerCase().includes(query) ||
       deal.category.toLowerCase().includes(query) ||
       deal.description.toLowerCase().includes(query) ||
-      deal.code.toLowerCase().includes(query)
+      deal.code.toLowerCase().includes(query) ||
+      (deal.topicName || "").toLowerCase().includes(query) ||
+      (deal.partner || "").toLowerCase().includes(query)
     );
   });
 
-  const filteredTrendingDeals =
+  // Homepage cards are topics; opening one lists all of its offers.
+  const filteredTopics =
     selectedCategory === "All"
-      ? searchDeals
-      : searchDeals.filter((deal) => deal.category === selectedCategory);
+      ? topicSummaries
+      : topicSummaries.filter((topic) => topic.category === selectedCategory);
 
   const isSaved = (deal) => savedDeals.some((item) => item.id === deal.id);
 
@@ -85,9 +110,24 @@ function Home({
     }
   };
 
+  const goHome = () => {
+    setSelectedDeal(null);
+    setSelectedTopicId(null);
+  };
+
+  const openTopic = (topicId) => {
+    if (!isLoggedIn) {
+      onRequestTopicSignIn?.(topicId);
+      return;
+    }
+    setSelectedDeal(null);
+    setSelectedTopicId(topicId);
+  };
+
   const selectCategory = (category) => {
     setSelectedCategory(category);
-    setSelectedDeal(null);
+    setVisibleCount(PAGE_SIZE);
+    goHome();
     scrollToId("trending-deals");
   };
 
@@ -112,7 +152,11 @@ function Home({
 
   // DEAL DETAILS PAGE
   if (selectedDeal) {
-    const otherDeals = searchDeals.filter((deal) => deal.id !== selectedDeal.id);
+    // Same-topic offers first, then everything else.
+    const otherDeals = searchDeals
+      .filter((deal) => deal.id !== selectedDeal.id)
+      .sort((a, b) => Number(b.topic === selectedDeal.topic) - Number(a.topic === selectedDeal.topic));
+    const isPaymentOffer = selectedDeal.type === "bank_offer" || selectedDeal.type === "cashback";
     const hasAlert = priceAlerts.some((a) => a.deal.id === selectedDeal.id);
     const saved = isSaved(selectedDeal);
 
@@ -120,12 +164,12 @@ function Home({
       <div className="page page-enter" key={selectedDeal.id}>
         <TopBar
           {...topBarProps}
-          onHome={() => setSelectedDeal(null)}
+          onHome={goHome}
           back={{
-            label: "Back to Deals",
+            label: selectedTopic ? `Back to ${selectedTopic.name}` : "Back to Deals",
             onClick: () => {
               setSelectedDeal(null);
-              scrollToId("trending-deals");
+              if (!selectedTopic) scrollToId("trending-deals");
             },
           }}
         />
@@ -134,11 +178,19 @@ function Home({
           <DotPattern width={22} height={22} className="dot-pattern--page" />
           <div className="container">
             <nav className="breadcrumbs" aria-label="Breadcrumb">
-              <button type="button" onClick={() => setSelectedDeal(null)}>Home</button>
+              <button type="button" onClick={goHome}>Home</button>
               <span aria-hidden="true">/</span>
               <button type="button" onClick={() => selectCategory(selectedDeal.category)}>
                 {selectedDeal.category}
               </button>
+              {selectedDeal.topic && (
+                <>
+                  <span aria-hidden="true">/</span>
+                  <button type="button" onClick={() => openTopic(selectedDeal.topic)}>
+                    {selectedDeal.topicName}
+                  </button>
+                </>
+              )}
               <span aria-hidden="true">/</span>
               <span aria-current="page">{selectedDeal.store}</span>
             </nav>
@@ -157,7 +209,7 @@ function Home({
                   <span className="detail-ticket__store">{selectedDeal.store}</span>
                   <strong className="detail-ticket__discount">{selectedDeal.discount}</strong>
                   <span className="detail-ticket__perf" aria-hidden="true" />
-                  <span className="detail-ticket__code">{selectedDeal.code}</span>
+                  <span className="detail-ticket__code">{selectedDeal.code || "No code needed"}</span>
                 </div>
                 <div className="detail-stage__floor" aria-hidden="true" />
               </div>
@@ -165,11 +217,22 @@ function Home({
               <div className="detail-info">
                 <div className="detail-info__meta">
                   <span className="pill pill--lime">{selectedDeal.store}</span>
-                  <span className="pill">{selectedDeal.category}</span>
+                  {selectedDeal.type ? (
+                    <span className="pill">{offerTypeLabel(selectedDeal.type)}</span>
+                  ) : (
+                    <span className="pill">{selectedDeal.category}</span>
+                  )}
+                  {expiryLabel(selectedDeal) && <span className="pill pill--warn">{expiryLabel(selectedDeal)}</span>}
                 </div>
 
                 <h1>{selectedDeal.title}</h1>
                 <p className="detail-info__desc">{selectedDeal.description}</p>
+                {selectedDeal.partner && (
+                  <p className="detail-partner">
+                    <Icon name="wallet" size={18} />
+                    Pay with <strong>{selectedDeal.partner}</strong>
+                  </p>
+                )}
 
                 <div className="detail-offer">
                   <div>
@@ -179,7 +242,7 @@ function Home({
                   <Icon name="tag" size={34} />
                 </div>
 
-                <p className="field-label">Your coupon code</p>
+                <p className="field-label">{selectedDeal.code ? "Your coupon code" : "No coupon code needed"}</p>
                 <CouponCode code={selectedDeal.code} size="lg" deal={selectedDeal} />
 
                 <div className="detail-actions">
@@ -224,18 +287,40 @@ function Home({
               <div className="info-block info-block--wide">
                 <span className="info-block__icon"><Icon name="sparkle" /></span>
                 <h2>How to Use This Coupon</h2>
-                <ol className="steps">
-                  <li>Copy the coupon code above.</li>
-                  <li>Visit the relevant store's website or mobile app.</li>
-                  <li>Add your desired products to the shopping cart.</li>
-                  <li>Enter the coupon code at checkout and check whether the discount applies.</li>
-                </ol>
+                {isPaymentOffer ? (
+                  <ol className="steps">
+                    <li>Select View Deal to open the store.</li>
+                    <li>Add your desired products to the shopping cart.</li>
+                    <li>At payment, pay with {selectedDeal.partner}.</li>
+                    <li>
+                      {selectedDeal.type === "cashback"
+                        ? "The cashback is credited after the order, as per the terms."
+                        : "The discount is applied at payment if the order is eligible."}
+                    </li>
+                  </ol>
+                ) : selectedDeal.code ? (
+                  <ol className="steps">
+                    <li>Copy the coupon code above.</li>
+                    <li>Visit the relevant store's website or mobile app.</li>
+                    <li>Add your desired products to the shopping cart.</li>
+                    <li>Enter the coupon code at checkout and check whether the discount applies.</li>
+                  </ol>
+                ) : (
+                  <ol className="steps">
+                    <li>Select View Deal to open the store.</li>
+                    <li>Add your desired products to the shopping cart.</li>
+                    <li>The offer price is shown by the store; no code is needed.</li>
+                  </ol>
+                )}
               </div>
 
               <div className="info-block">
                 <span className="info-block__icon"><Icon name="shield" /></span>
                 <h2>Terms &amp; Conditions</h2>
                 <ul className="bullets">
+                  {selectedDeal.expiresAt && <li>Valid until {formatExpiry(selectedDeal.expiresAt)}.</li>}
+                  {selectedDeal.minOrder && <li>Minimum order ₹{selectedDeal.minOrder.toLocaleString("en-IN")}.</li>}
+                  {(selectedDeal.terms || []).map((term) => <li key={term}>{term}</li>)}
                   <li>This offer is sample content for demonstration.</li>
                   <li>Actual eligibility may depend on the store and products purchased.</li>
                   <li>Minimum order values or other restrictions may apply.</li>
@@ -262,8 +347,50 @@ function Home({
     );
   }
 
+  // TOPIC PAGE: every coupon, deal, bank offer and cashback for one topic
+  if (selectedTopic) {
+    return (
+      <div className="page page-enter" key={selectedTopic.id}>
+        <TopBar
+          {...topBarProps}
+          onHome={goHome}
+          back={{
+            label: "Back to Deals",
+            onClick: () => {
+              setSelectedTopicId(null);
+              scrollToId("trending-deals");
+            },
+          }}
+        />
+
+        <main className="dotted">
+          <DotPattern width={22} height={22} className="dot-pattern--page" />
+          <div className="container">
+            <nav className="breadcrumbs" aria-label="Breadcrumb">
+              <button type="button" onClick={goHome}>Home</button>
+              <span aria-hidden="true">/</span>
+              <button type="button" onClick={() => selectCategory(selectedTopic.category)}>
+                {selectedTopic.category}
+              </button>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">{selectedTopic.name}</span>
+            </nav>
+
+            <TopicOffers
+              topic={selectedTopic}
+              offers={searchDeals.filter((deal) => deal.topic === selectedTopic.id)}
+              renderDealCard={renderDealCard}
+            />
+          </div>
+        </main>
+
+        <SiteFooter compact />
+      </div>
+    );
+  }
+
   // HOMEPAGE
-  const heroDeals = searchDeals.slice(0, 3);
+  const heroTopics = topicSummaries.slice(0, 3);
 
   return (
     <div className="page page-enter">
@@ -392,18 +519,18 @@ function Home({
               </div>
               <div className="orb__shadow" aria-hidden="true" />
 
-              {heroDeals.map((deal, index) => (
+              {heroTopics.map((topic, index) => (
                 <button
-                  key={deal.id}
+                  key={topic.id}
                   type="button"
-                  className={`float-ticket float-ticket--${index + 1} tone-${toneFor(deal.category)}`}
-                  onClick={() => setSelectedDeal(deal)}
-                  aria-label={`Open ${deal.store} deal: ${deal.discount}`}
+                  className={`float-ticket float-ticket--${index + 1} tone-${toneFor(topic.category)}`}
+                  onClick={() => openTopic(topic.id)}
+                  aria-label={`Open ${topic.name} offers: ${topic.bestDiscount}`}
                 >
-                  <span className="float-ticket__emoji" aria-hidden="true">{deal.icon}</span>
+                  <span className="float-ticket__emoji" aria-hidden="true">{topic.icon}</span>
                   <span className="float-ticket__text">
-                    <span>{deal.store}</span>
-                    <strong>{deal.discount}</strong>
+                    <span>{topic.name}</span>
+                    <strong>{topic.bestDiscount}</strong>
                   </span>
                 </button>
               ))}
@@ -476,7 +603,7 @@ function Home({
               <h2>Trending Deals</h2>
               <p>
                 {selectedCategory === "All" ? (
-                  "Explore popular offers and save on your next purchase."
+                  "Pick a topic to see every coupon, deal, bank offer and cashback for it."
                 ) : (
                   <>
                     Showing deals for: <strong>{selectedCategory}</strong>
@@ -492,7 +619,10 @@ function Home({
                 type="button"
                 key={name}
                 className={`filter-pill ${selectedCategory === name ? "is-active" : ""}`}
-                onClick={() => setSelectedCategory(name)}
+                onClick={() => {
+                  setSelectedCategory(name);
+                  setVisibleCount(PAGE_SIZE);
+                }}
                 aria-pressed={selectedCategory === name}
               >
                 {name === "All" ? "All Deals" : name}
@@ -500,8 +630,24 @@ function Home({
             ))}
           </div>
 
-          {filteredTrendingDeals.length > 0 ? (
-            <div className="deal-grid">{filteredTrendingDeals.map(renderDealCard)}</div>
+          {filteredTopics.length > 0 ? (
+            <>
+              <div className="deal-grid">
+                {filteredTopics.slice(0, visibleCount).map((topic) => (
+                  <TopicCard key={topic.id} topic={topic} onOpen={() => openTopic(topic.id)} />
+                ))}
+              </div>
+              {filteredTopics.length > visibleCount && (
+                <div className="show-more">
+                  <button type="button" className="btn btn--ghost" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
+                    Show more deals
+                  </button>
+                  <span className="show-more__count">
+                    Showing {visibleCount} of {filteredTopics.length}
+                  </span>
+                </div>
+              )}
+            </>
           ) : (
             <EmptyState title="No deals found in this category">
               Pick another category to keep exploring.

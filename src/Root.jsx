@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import App from "./App.jsx";
 import CursorSpotlight from "./components/CursorSpotlight.jsx";
+import DealsProvider from "./data/DealsProvider.jsx";
 
 // The admin panel lives at /admin and is loaded only when visited, so the
 // customer website bundle is unchanged. Production hosting must rewrite
@@ -17,7 +18,9 @@ function Root() {
           <AdminApp />
         </Suspense>
       ) : (
-        <App />
+        <DealsProvider>
+          <App />
+        </DealsProvider>
       )}
       {/* One website-wide cursor light for every screen, including /admin. */}
       <CursorSpotlight />

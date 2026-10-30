@@ -25,6 +25,16 @@ function CouponCode({ code, size = "md", deal }) {
     }
   };
 
+  // Deals without a code: the discount applies on the merchant's site.
+  if (!code) {
+    return (
+      <div className={`coupon-strip coupon-strip--${size} coupon-strip--nocode`}>
+        <span className="coupon-strip__code">No code needed</span>
+        <Icon name="check" size={16} />
+      </div>
+    );
+  }
+
   return (
     <div className={`coupon-strip coupon-strip--${size}`}>
       <span className="coupon-strip__code">{code}</span>

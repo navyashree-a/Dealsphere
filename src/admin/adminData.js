@@ -4,7 +4,7 @@
 // does not mean Tamada Media or DealSphere has a signed partnership" - so they
 // all start as "Proposed".
 
-import { categories as publicCategories, deals as publicDeals } from "../data/deals";
+import { categories as publicCategories, curatedDeals as publicDeals } from "../data/deals";
 import { ROLE_DEFAULTS, clonePermissions } from "./permissions";
 import { addDays, nowISO } from "./adminUtils";
 

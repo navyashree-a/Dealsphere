@@ -26,3 +26,7 @@ dist-ssr
 # Local environment and tool config (never commit secrets)
 .env
 .claude/
+
+# Cloudflare local dev state
+.wrangler/
+.dev.vars

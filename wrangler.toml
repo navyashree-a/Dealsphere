@@ -1,0 +1,5 @@
+# Cloudflare Pages config. Vite builds the website into dist/; the backend
+# lives in functions/ (Pages Functions that call server/dealsApi.js).
+name = "dealsphere"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"

@@ -2,6 +2,7 @@ import { useId } from "react";
 import Icon from "./Icon";
 import { resolveDealLink } from "../utils/dealLink";
 import { useCouponActivity } from "./couponActivity";
+import { useDealAccess } from "./dealAccess";
 
 const REASONS = {
   missing: "The merchant link for this deal hasn't been added yet.",
@@ -13,15 +14,37 @@ const REASONS = {
 function ViewDealLink({ deal, variant = "card" }) {
   const reasonId = useId();
   const recordActivity = useCouponActivity();
+  const { isLoggedIn, requestSignIn } = useDealAccess();
   const link = resolveDealLink(deal);
   const isCard = variant === "card";
   const className = isCard ? "view-deal" : "btn btn--lime";
+
+  // Signed out: same button, but it asks the customer to sign in first.
+  if (link.ok && !isLoggedIn) {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={(event) => {
+          event.stopPropagation();
+          requestSignIn(deal);
+        }}
+        aria-label={`Sign in to view this deal at ${link.merchantName}`}
+        data-tip={isCard ? "Sign in to view" : undefined}
+      >
+        <Icon name="lock" size={isCard ? 14 : 16} />
+        {isCard ? "View Deal" : `View Deal at ${link.merchantName}`}
+      </button>
+    );
+  }
 
   if (link.ok) {
     return (
       <a
         className={className}
-        href={link.href}
+        // Through the backend redirect when the deal came from the API, so the
+        // server looks up this offer and sends the customer to its own page.
+        href={deal.goUrl || link.href}
         target="_blank"
         // noopener: the merchant tab can't control this page.
         // sponsored: marks affiliate links as paid links.

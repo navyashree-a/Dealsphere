@@ -10,6 +10,8 @@ import Icon from "./components/Icon";
 import DotPattern from "./components/DotPattern";
 import CouponCode from "./components/CouponCode";
 import { CouponActivityContext } from "./components/couponActivity";
+import { DealAccessContext } from "./components/dealAccess";
+import { topics } from "./data/topics";
 import { toneFor } from "./data/deals";
 import GoogleSignInButton from "./auth/GoogleSignInButton";
 import WhatsAppOtpLogin from "./auth/WhatsAppOtpLogin";
@@ -25,6 +27,11 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [pendingDeal, setPendingDeal] = useState(null);
   const [dealToOpen, setDealToOpen] = useState(null);
+  // Deal whose "View Deal" was clicked while signed out; reopened after sign-in.
+  const [dealToView, setDealToView] = useState(null);
+  // Topic page opened while signed out (id); shown after sign-in.
+  const [topicToView, setTopicToView] = useState(null);
+  const [topicToOpen, setTopicToOpen] = useState(null);
   const [priceAlerts, setPriceAlerts] = useState([]);
   const [alertDeal, setAlertDeal] = useState(null);
   const [alertPrice, setAlertPrice] = useState("");
@@ -85,6 +92,8 @@ function App() {
     setAlertDeal(deal);
     setAlertPrice(existing ? String(existing.targetPrice) : "");
     setPendingDeal(null);
+    setDealToView(null);
+    setTopicToView(null);
 
     if (isLoggedIn) {
       setPage("create-alert");
@@ -126,6 +135,8 @@ function App() {
     setAlertDeal(null);
     setAlertPrice("");
     setPendingDeal(null);
+    setDealToView(null);
+    setTopicToView(null);
     setUserEmail("");
     setUserName("");
     setUserAvatar("");
@@ -202,6 +213,21 @@ function App() {
       setPendingDeal(null);
     }
 
+    if (dealToView) {
+      setDealToOpen(dealToView);
+      setDealToView(null);
+      setTopicToView(null);
+      setPage("home");
+      return;
+    }
+
+    if (topicToView) {
+      setTopicToOpen(topicToView);
+      setTopicToView(null);
+      setPage("home");
+      return;
+    }
+
     setPage(returnPage);
   };
 
@@ -234,9 +260,29 @@ function App() {
       setPage(destination);
     } else {
       setPendingDeal(null);
+      setDealToView(null);
+      setTopicToView(null);
       setReturnPage(destination);
       goAuth("login");
     }
+  };
+
+  // "View Deal" while signed out: sign in first, then come back to the deal.
+  const requestSignInForDeal = (deal) => {
+    setPendingDeal(null);
+    setTopicToView(null);
+    setDealToView(deal);
+    setReturnPage("home");
+    goAuth("login");
+  };
+
+  // Topic offer pages are for signed-in customers too.
+  const requestSignInForTopic = (topicId) => {
+    setPendingDeal(null);
+    setDealToView(null);
+    setTopicToView(topicId);
+    setReturnPage("home");
+    goAuth("login");
   };
 
   const openDeal = (deal) => {
@@ -853,6 +899,9 @@ function App() {
           onOpenProfile={() => requireLogin("profile")}
           initialDeal={dealToOpen}
           onDealOpened={() => setDealToOpen(null)}
+          initialTopicId={topicToOpen}
+          onTopicOpened={() => setTopicToOpen(null)}
+          onRequestTopicSignIn={requestSignInForTopic}
           onOpenWishlist={() => requireLogin("wishlist")}
           onRemoveDeal={removeDeal}
           onSaveDeal={(deal) => {
@@ -860,6 +909,8 @@ function App() {
               addDealToWishlist(deal);
             } else {
               setPendingDeal(deal);
+              setDealToView(null);
+              setTopicToView(null);
               setReturnPage("home");
               goAuth("login");
             }
@@ -873,7 +924,12 @@ function App() {
 
   const renderAuth = () => {
     const passwordsMatch = signupPassword === confirmPassword;
-    const authContext = pendingDeal
+    const topicName = topics.find((topic) => topic.id === topicToView)?.name;
+    const authContext = dealToView
+      ? `Sign in to view the ${dealToView.store} deal: ${dealToView.title}.`
+      : topicName
+      ? `Sign in to see all ${topicName} offers.`
+      : pendingDeal
       ? `Sign in to save the ${pendingDeal.store} deal to your wishlist.`
       : returnPage === "create-alert" && alertDeal
       ? `Sign in to set a price alert for ${alertDeal.store}.`
@@ -1166,7 +1222,11 @@ function App() {
 
   return (
     <>
-      <CouponActivityContext.Provider value={recordCouponActivity}>{renderPage()}</CouponActivityContext.Provider>
+      <CouponActivityContext.Provider value={recordCouponActivity}>
+        <DealAccessContext.Provider value={{ isLoggedIn, requestSignIn: requestSignInForDeal }}>
+          {renderPage()}
+        </DealAccessContext.Provider>
+      </CouponActivityContext.Provider>
       <div className="toast-region" role="status" aria-live="polite">
         {toast && (
           <div className="toast" key={toast.id}>

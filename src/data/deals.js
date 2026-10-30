@@ -1,3 +1,7 @@
+import { dummyCouponFeed, DUMMY_FEED_SOURCE } from "./feeds/dummyCouponFeed.js";
+import { normalizeFeed } from "./feeds/normalizeFeed.js";
+import { topics } from "./topics.js";
+
 // Demo content only. Stores, discounts and codes are sample data and have
 // not been verified with any retailer.
 //
@@ -15,7 +19,7 @@
 // configured, so these links do not earn commission. Replace them with
 // specific product pages and approved affiliate links when available.
 
-export const deals = [
+export const curatedDeals = [
   {
     id: 1,
     category: "Fashion",
@@ -150,3 +154,27 @@ const categoryTones = {
 };
 
 export const toneFor = (category) => categoryTones[category] || "lime";
+
+// Builds everything customers can browse: the dummy coupon feed (test data)
+// run through the feed adapter. (curatedDeals above are the admin demo's own
+// sample deals; the feed already includes their codes under their topics.) Expired, not-yet-
+// started and invalid offers are removed here, before any page sees them.
+// The backend (server/dealsApi.js) calls this on every request so expiry is
+// always current. Swap dummyCouponFeed for a real provider's (mapped) feed, or a
+// database query, to go live.
+export function buildCatalog(now = Date.now()) {
+  const feed = normalizeFeed(dummyCouponFeed, {
+    topics,
+    source: DUMMY_FEED_SOURCE,
+    now,
+  });
+  return { deals: feed.deals, rejected: feed.rejected };
+}
+
+// Bundled copy: shown instantly and used if the backend can't be reached.
+const catalog = buildCatalog();
+export const deals = catalog.deals;
+
+if (import.meta.env?.DEV && catalog.rejected.length) {
+  console.info(`[DealSphere] ${catalog.rejected.length} feed offer(s) hidden:`, catalog.rejected);
+}

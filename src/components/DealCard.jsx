@@ -3,6 +3,8 @@ import Icon from "./Icon";
 import ViewDealLink from "./ViewDealLink";
 import useTilt from "./useTilt";
 import { toneFor } from "../data/deals";
+import { expiryLabel, isEndingSoon } from "../data/feeds/normalizeFeed";
+import { offerTypeLabel } from "../data/topics";
 
 // Coupon-ticket card. The title button stretches over the whole card, so the
 // card opens on click while the inner buttons stay independently focusable.
@@ -44,14 +46,30 @@ function DealCard({ deal, isSaved = false, onOpen, onToggleSave, onRemove }) {
       <div className="deal-card__body">
         <div className="deal-card__meta">
           <span className="deal-card__store">{deal.store}</span>
-          <span className="deal-card__cat">{deal.category}</span>
+          {deal.type ? (
+            <span className={`deal-card__cat deal-card__type deal-card__type--${deal.type}`}>{offerTypeLabel(deal.type)}</span>
+          ) : (
+            <span className="deal-card__cat">{deal.category}</span>
+          )}
         </div>
+        {expiryLabel(deal) && (
+          <p className={`deal-card__expiry ${isEndingSoon(deal) ? "is-soon" : ""}`}>
+            <Icon name="clock" size={14} />
+            {expiryLabel(deal)}
+          </p>
+        )}
         <h3 className="deal-card__title">
           <button type="button" className="deal-card__link" onClick={() => onOpen(deal)}>
             {deal.title}
           </button>
         </h3>
         <p className="deal-card__desc">{deal.description}</p>
+        {deal.partner && (
+          <p className="deal-card__partner">
+            <Icon name="wallet" size={14} />
+            {deal.partner}
+          </p>
+        )}
       </div>
 
       <div className="deal-card__perf" aria-hidden="true" />
