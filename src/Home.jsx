@@ -519,20 +519,19 @@ function Home({
               </div>
               <div className="orb__shadow" aria-hidden="true" />
 
+              {/* Decorative only: the topic cards below are where offers open. */}
               {heroTopics.map((topic, index) => (
-                <button
+                <div
                   key={topic.id}
-                  type="button"
                   className={`float-ticket float-ticket--${index + 1} tone-${toneFor(topic.category)}`}
-                  onClick={() => openTopic(topic.id)}
-                  aria-label={`Open ${topic.name} offers: ${topic.bestDiscount}`}
+                  aria-hidden="true"
                 >
-                  <span className="float-ticket__emoji" aria-hidden="true">{topic.icon}</span>
+                  <span className="float-ticket__emoji">{topic.icon}</span>
                   <span className="float-ticket__text">
                     <span>{topic.name}</span>
                     <strong>{topic.bestDiscount}</strong>
                   </span>
-                </button>
+                </div>
               ))}
 
               <span className="spark spark--1" aria-hidden="true" />

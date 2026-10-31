@@ -1223,11 +1223,7 @@
   box-shadow: var(--shadow-lg);
   text-align: left;
   animation: float 6s ease-in-out infinite;
-  transition: box-shadow 0.25s;
-}
-
-.float-ticket:hover {
-  box-shadow: 0 0 0 3px var(--lime), var(--shadow-lg);
+  pointer-events: none;
 }
 
 .float-ticket__emoji {
