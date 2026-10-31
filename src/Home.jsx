@@ -23,7 +23,6 @@ const formatExpiry = (iso) =>
 
 const navLinks = [
   { href: "#home", label: "Home" },
-  { href: "#categories", label: "Categories" },
   { href: "#trending-deals", label: "Trending Deals" },
   { href: "#stores", label: "Stores" },
 ];
@@ -563,37 +562,6 @@ function Home({
             )}
           </section>
         )}
-
-        <section className="section container" id="categories">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Explore &amp; save</p>
-              <h2>Shop by Category</h2>
-              <p>Find the best deals in the things you love.</p>
-            </div>
-          </div>
-
-          <div className="category-grid">
-            {categories.map((category) => (
-              <button
-                type="button"
-                key={category.name}
-                className={`category-tile tone-${toneFor(category.name)} ${
-                  selectedCategory === category.name ? "is-active" : ""
-                }`}
-                onClick={() => selectCategory(category.name)}
-                aria-pressed={selectedCategory === category.name}
-              >
-                <span className="category-tile__block" aria-hidden="true">
-                  {category.icon}
-                </span>
-                <span className="category-tile__name">{category.name}</span>
-                <span className="category-tile__desc">{category.description}</span>
-                <Icon name="arrowRight" size={18} className="category-tile__arrow" />
-              </button>
-            ))}
-          </div>
-        </section>
 
         <section className="section container" id="trending-deals">
           <div className="section-head">

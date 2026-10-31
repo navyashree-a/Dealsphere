@@ -13,7 +13,6 @@ function SiteFooter({ compact = false }) {
           <div className="site-footer__links">
             <h3>Explore</h3>
             <a href="#home">Home</a>
-            <a href="#categories">Categories</a>
             <a href="#trending-deals">Trending Deals</a>
             <a href="#stores">Popular Stores</a>
           </div>
