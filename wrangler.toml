@@ -9,6 +9,11 @@ compatibility_date = "2026-10-01"
 binding = "OTP_KV"
 id = "1e89e9c311f244c9a3354c0f2938c954"
 
+# Signed-in sessions and each customer's saved deals. See server/session.js, server/userApi.js.
+[[kv_namespaces]]
+binding = "USERS_KV"
+id = "03b223b42c954f9a9e612553c9111664"
+
 # Pinnacle (WhatsApp Business) settings - not secret. The API key is NOT here:
 # it is the PINNACLE_API_KEY secret, set with
 #   npx wrangler pages secret put PINNACLE_API_KEY --project-name dealsphere

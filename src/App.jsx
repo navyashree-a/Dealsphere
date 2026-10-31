@@ -17,6 +17,8 @@ import GoogleSignInButton from "./auth/GoogleSignInButton";
 import WhatsAppOtpLogin from "./auth/WhatsAppOtpLogin";
 import { maskPhone } from "./auth/whatsappOtp";
 import { googleSignOut } from "./auth/googleAuth";
+import { endServerSession, fetchSavedIds, fetchSession, saveSavedIds } from "./auth/session";
+import { useDeals } from "./data/dealsContext";
 import { prepareAvatar } from "./utils/avatarImage";
 
 function App() {
@@ -24,6 +26,10 @@ function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [returnPage, setReturnPage] = useState("home");
   const [savedDeals, setSavedDeals] = useState([]);
+  // True once a WhatsApp customer's saved deals have been loaded from the
+  // server; from then on every change is saved back (see the effect below).
+  const [savedSyncReady, setSavedSyncReady] = useState(false);
+  const catalogDeals = useDeals();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [pendingDeal, setPendingDeal] = useState(null);
   const [dealToOpen, setDealToOpen] = useState(null);
@@ -142,6 +148,8 @@ function App() {
     setUserAvatar("");
     setPhotoStatus(null);
     if (authProvider === "google") googleSignOut();
+    if (authProvider === "whatsapp") endServerSession();
+    setSavedSyncReady(false);
     setAuthProvider("");
     setUserPhone("");
     setIsEditingName(false);
@@ -238,6 +246,21 @@ function App() {
   };
 
   // WhatsApp OTP sign-in (see src/auth/whatsappOtp.js for the backend contract).
+  // Loads a WhatsApp customer's saved deals from the server and merges them
+  // with anything saved during this visit (e.g. the deal that prompted sign-in).
+  // Only ids are stored; deals no longer in the catalog (expired) drop out.
+  const loadSavedDeals = () => {
+    fetchSavedIds()
+      .then((ids) => {
+        const fromServer = ids.map((id) => catalogDeals.find((deal) => deal.id === id)).filter(Boolean);
+        setSavedDeals((previous) => [...fromServer, ...previous.filter((deal) => !ids.includes(deal.id))]);
+        setSavedSyncReady(true);
+      })
+      .catch(() => {
+        // Leave sync off so a failed load can't overwrite the stored list.
+      });
+  };
+
   const handleWhatsAppSignIn = ({ phone, name }) => {
     setUserPhone(phone);
     setUserEmail("");
@@ -245,7 +268,30 @@ function App() {
     setUserAvatar("");
     setAuthProvider("whatsapp");
     completeSignIn("Welcome to DealSphere! You're signed in with WhatsApp.");
+    loadSavedDeals();
   };
+
+  // A WhatsApp session cookie survives page reloads: restore the sign-in.
+  useEffect(() => {
+    let cancelled = false;
+    fetchSession().then((phone) => {
+      if (cancelled || !phone) return;
+      setUserPhone(phone);
+      setAuthProvider("whatsapp");
+      setIsLoggedIn(true);
+      loadSavedDeals();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the server's copy of a WhatsApp customer's wishlist up to date.
+  useEffect(() => {
+    if (authProvider !== "whatsapp" || !savedSyncReady) return;
+    saveSavedIds(savedDeals.map((deal) => deal.id)).catch(() => {});
+  }, [savedDeals, authProvider, savedSyncReady]);
 
   const handleGoogleSignIn = (profile) => {
     setUserEmail(profile.email);

@@ -24,6 +24,12 @@
 // (clearly labelled demo); the live site answers "not set up" - it never
 // pretends to have sent a message.
 
+import { startSession } from "./session.js";
+import { kvStore, memoryStore } from "./storage.js";
+
+// Re-exported for the Pages Functions, the dev server and tests.
+export { kvStore, memoryStore };
+
 export const OTP_TTL_SECONDS = 300;
 const MAX_ATTEMPTS = 5;
 const RESEND_SECONDS = 30;
@@ -72,34 +78,6 @@ const sameHex = (a, b) => {
   let diff = 0;
   for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
-};
-
-// ---------- storage: Cloudflare KV in production, memory locally ----------
-export const kvStore = (kv) => ({
-  get: async (key) => {
-    const value = await kv.get(key);
-    return value ? JSON.parse(value) : null;
-  },
-  // KV needs an expiry at least 60 seconds ahead.
-  put: (key, value, ttlSeconds) => kv.put(key, JSON.stringify(value), { expirationTtl: Math.max(60, Math.ceil(ttlSeconds)) }),
-  delete: (key) => kv.delete(key),
-});
-
-export const memoryStore = () => {
-  const map = new Map();
-  return {
-    get: async (key) => {
-      const item = map.get(key);
-      if (!item || item.until < Date.now()) return null;
-      return item.value;
-    },
-    put: async (key, value, ttlSeconds) => {
-      map.set(key, { value, until: Date.now() + Math.max(60, ttlSeconds) * 1000 });
-    },
-    delete: async (key) => {
-      map.delete(key);
-    },
-  };
 };
 
 // ---------- Pinnacle ----------
@@ -165,8 +143,9 @@ const normalisePhone = (value) => {
   return PHONE_RE.test(phone) ? phone : "";
 };
 
-// deps: { store, fetch, devFallback } - injectable so tests and the local
-// server can run without Cloudflare or Pinnacle.
+// deps: { store, fetch, devFallback, sessionStore } - injectable so tests and
+// the local server can run without Cloudflare or Pinnacle. With sessionStore,
+// a correct code also signs the customer in (session cookie, see session.js).
 export async function sendOtp(request, env = {}, deps = {}) {
   const store = deps.store;
   const { phone: rawPhone } = await readJson(request);
@@ -243,7 +222,9 @@ export async function verifyOtp(request, _env, deps = {}) {
 
   await store.delete(key); // a code works once
   console.log(JSON.stringify({ event: "whatsapp_otp_verified", phone: maskPhone(phone) }));
-  return json({ phone, name: "" });
+  const response = json({ phone, name: "" });
+  if (deps.sessionStore) response.headers.append("set-cookie", await startSession(request, deps.sessionStore, phone));
+  return response;
 }
 
 // Routes POST /api/otp/whatsapp/{send,verify}; null when the path isn't ours.
