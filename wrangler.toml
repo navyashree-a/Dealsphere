@@ -1,5 +1,21 @@
 # Cloudflare Pages config. Vite builds the website into dist/; the backend
-# lives in functions/ (Pages Functions that call server/dealsApi.js).
+# lives in functions/ (Pages Functions that call server/*.js).
 name = "dealsphere"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-01"
+
+# Temporary WhatsApp sign-in codes (hashed, 5-minute expiry). See server/whatsappOtp.js.
+[[kv_namespaces]]
+binding = "OTP_KV"
+id = "1e89e9c311f244c9a3354c0f2938c954"
+
+# Pinnacle (WhatsApp Business) settings - not secret. The API key is NOT here:
+# it is the PINNACLE_API_KEY secret, set with
+#   npx wrangler pages secret put PINNACLE_API_KEY --project-name dealsphere
+[vars]
+PINNACLE_API_URL = "https://partnersv1.pinbot.ai"
+PINNACLE_WABA_NUMBER = "919247915071"
+PINNACLE_WABA_NUMBER_ID = "1329609913570582"
+PINNACLE_OTP_TEMPLATE = "dealsphere_login_code"
+PINNACLE_OTP_LANGUAGE = "en"
+PINNACLE_OTP_BUTTON = "1"

@@ -4,7 +4,6 @@ import {
   COUNTRIES,
   OTP_LENGTH,
   RESEND_SECONDS,
-  isOtpDemo,
   maskPhone,
   normalisePhone,
   sendWhatsAppOtp,
@@ -169,7 +168,7 @@ function WhatsAppOtpLogin({ onSuccess, mode = "signin" }) {
               <Icon name="info" size={16} />
               <span>
                 <strong>Demo — no WhatsApp message was sent.</strong> Use code{" "}
-                <span className="wa-otp__demo-code">{demoCode}</span>. A real backend is needed to send codes.
+                <span className="wa-otp__demo-code">{demoCode}</span>. Pinnacle isn't set up on this server yet.
               </span>
             </p>
           )}
@@ -206,9 +205,6 @@ function WhatsAppOtpLogin({ onSuccess, mode = "signin" }) {
       <p id={`${id}-msg`} className="wa-otp__error" role="alert">
         {error}
       </p>
-      {isOtpDemo() && step === "phone" && (
-        <p className="wa-otp__hint">Demo mode: no message will actually be sent.</p>
-      )}
     </div>
   );
 }

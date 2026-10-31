@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:data": "node --test scripts/test-coupon-data.mjs",
+    "test:data": "node --test scripts/test-coupon-data.mjs scripts/test-whatsapp-otp.mjs",
     "preview:cf": "npm run build && wrangler pages dev --port 8788",
     "deploy": "npm run build && wrangler pages deploy"
   },
