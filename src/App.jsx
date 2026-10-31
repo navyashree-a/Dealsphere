@@ -17,7 +17,7 @@ import GoogleSignInButton from "./auth/GoogleSignInButton";
 import WhatsAppOtpLogin from "./auth/WhatsAppOtpLogin";
 import { maskPhone } from "./auth/whatsappOtp";
 import { googleSignOut } from "./auth/googleAuth";
-import { endServerSession, fetchSavedIds, fetchSession, saveSavedIds } from "./auth/session";
+import { endServerSession, fetchAlerts, fetchSavedIds, fetchSession, saveAlerts, saveSavedIds } from "./auth/session";
 import { useDeals } from "./data/dealsContext";
 import { prepareAvatar } from "./utils/avatarImage";
 
@@ -26,8 +26,9 @@ function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [returnPage, setReturnPage] = useState("home");
   const [savedDeals, setSavedDeals] = useState([]);
-  // True once a WhatsApp customer's saved deals have been loaded from the
-  // server; from then on every change is saved back (see the effect below).
+  // True once a WhatsApp customer's saved deals and price alerts have been
+  // loaded from the server; from then on every change is saved back (see the
+  // effects below).
   const [savedSyncReady, setSavedSyncReady] = useState(false);
   const catalogDeals = useDeals();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -246,14 +247,24 @@ function App() {
   };
 
   // WhatsApp OTP sign-in (see src/auth/whatsappOtp.js for the backend contract).
-  // Loads a WhatsApp customer's saved deals from the server and merges them
-  // with anything saved during this visit (e.g. the deal that prompted sign-in).
-  // Only ids are stored; deals no longer in the catalog (expired) drop out.
+  // Loads a WhatsApp customer's saved deals and price alerts from the server
+  // and merges them with anything added during this visit (e.g. the deal that
+  // prompted sign-in). Only ids are stored; deals no longer in the catalog
+  // (expired) drop out.
   const loadSavedDeals = () => {
-    fetchSavedIds()
-      .then((ids) => {
-        const fromServer = ids.map((id) => catalogDeals.find((deal) => deal.id === id)).filter(Boolean);
+    const findDeal = (id) => catalogDeals.find((deal) => deal.id === id);
+    Promise.all([fetchSavedIds(), fetchAlerts()])
+      .then(([ids, alerts]) => {
+        const fromServer = ids.map(findDeal).filter(Boolean);
         setSavedDeals((previous) => [...fromServer, ...previous.filter((deal) => !ids.includes(deal.id))]);
+        const alertsFromServer = alerts
+          .map((alert) => ({ deal: findDeal(alert.dealId), targetPrice: alert.targetPrice }))
+          .filter((alert) => alert.deal);
+        // An alert set during this visit wins over the stored one for the same deal.
+        setPriceAlerts((previous) => [
+          ...alertsFromServer.filter((alert) => !previous.some((p) => p.deal.id === alert.deal.id)),
+          ...previous,
+        ]);
         setSavedSyncReady(true);
       })
       .catch(() => {
@@ -287,11 +298,16 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the server's copy of a WhatsApp customer's wishlist up to date.
+  // Keep the server's copy of a WhatsApp customer's wishlist and alerts up to date.
   useEffect(() => {
     if (authProvider !== "whatsapp" || !savedSyncReady) return;
     saveSavedIds(savedDeals.map((deal) => deal.id)).catch(() => {});
   }, [savedDeals, authProvider, savedSyncReady]);
+
+  useEffect(() => {
+    if (authProvider !== "whatsapp" || !savedSyncReady) return;
+    saveAlerts(priceAlerts.map((alert) => ({ dealId: alert.deal.id, targetPrice: alert.targetPrice }))).catch(() => {});
+  }, [priceAlerts, authProvider, savedSyncReady]);
 
   const handleGoogleSignIn = (profile) => {
     setUserEmail(profile.email);

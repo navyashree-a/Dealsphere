@@ -64,6 +64,29 @@ test("each number only sees its own saved deals", async () => {
   assert.deepEqual((await (await call(users, "GET", "/api/me/saved", { cookie: b.cookie })).json()).ids, []);
 });
 
+test("price alerts survive sign-out and come back on the next sign-in", async () => {
+  const users = memoryStore();
+  const first = await signIn(users);
+  await call(users, "PUT", "/api/me/alerts", { cookie: first.cookie, body: { alerts: [{ dealId: 103, targetPrice: 2999 }] } });
+  await call(users, "POST", "/api/session/logout", { cookie: first.cookie });
+  assert.equal((await call(users, "GET", "/api/me/alerts", { cookie: first.cookie })).status, 401);
+
+  const second = await signIn(users);
+  assert.deepEqual((await (await call(users, "GET", "/api/me/alerts", { cookie: second.cookie })).json()).alerts, [{ dealId: 103, targetPrice: 2999 }]);
+});
+
+test("alerts are cleaned: one per deal, positive sensible prices only", async () => {
+  const users = memoryStore();
+  const { cookie } = await signIn(users);
+  const r = await call(users, "PUT", "/api/me/alerts", {
+    cookie,
+    body: { alerts: [{ dealId: 5, targetPrice: 100 }, { dealId: 5, targetPrice: 90 }, { dealId: 6, targetPrice: -1 }, { dealId: "x", targetPrice: 5 }, { dealId: 7, targetPrice: 1e9 }] },
+  });
+  assert.deepEqual((await r.json()).alerts, [{ dealId: 5, targetPrice: 90 }]);
+  assert.equal((await call(users, "PUT", "/api/me/alerts", { cookie, body: {} })).status, 400);
+  assert.equal((await call(users, "GET", "/api/me/alerts")).status, 401);
+});
+
 test("saved ids are cleaned: numbers only, no duplicates, signed-in only", async () => {
   const users = memoryStore();
   const { cookie } = await signIn(users);
