@@ -821,9 +821,7 @@
   top: 0;
   z-index: 40;
   border-bottom: 1px solid var(--line);
-  background: rgba(23, 23, 23, 0.78);
-  backdrop-filter: saturate(1.2) blur(12px);
-  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+  background: var(--bg);
 }
 
 .topbar__inner {
