@@ -3518,6 +3518,14 @@
   box-shadow: 0 4px 0 #5f7f0c;
 }
 
+.auth__promo-copy {
+  text-align: center;
+}
+
+.auth__promo-copy .eyebrow::before {
+  display: none;
+}
+
 .auth__promo-copy h2 {
   color: #fbfaf5;
   font-size: clamp(40px, 4.6vw, 64px);
@@ -3531,13 +3539,14 @@
 
 .auth__promo-copy > p:not(.eyebrow) {
   max-width: 420px;
-  margin-top: 14px;
+  margin: 14px auto 0;
   color: var(--muted);
 }
 
 .promo-benefits {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin: 22px 0 28px;
   padding: 0;
