@@ -20,6 +20,7 @@ import { googleSignOut } from "./auth/googleAuth";
 import { endServerSession, fetchAlerts, fetchSavedIds, fetchSession, saveAlerts, saveSavedIds } from "./auth/session";
 import { useDeals } from "./data/dealsContext";
 import { prepareAvatar } from "./utils/avatarImage";
+import { acknowledgeAlerts, currentPrice, isAlertReached, reachedAlertNotifications } from "./utils/priceAlerts";
 
 function App() {
   const [page, setPage] = useState("home");
@@ -122,7 +123,7 @@ function App() {
     addNotification(`Price alert set for ${alertDeal.store} at ₹${target}.`);
     setAlertDeal(null);
     setAlertPrice("");
-    setPage("alerts");
+    setPage("notifications");
   };
 
   const removeAlert = (dealId) => {
@@ -258,7 +259,7 @@ function App() {
         const fromServer = ids.map(findDeal).filter(Boolean);
         setSavedDeals((previous) => [...fromServer, ...previous.filter((deal) => !ids.includes(deal.id))]);
         const alertsFromServer = alerts
-          .map((alert) => ({ deal: findDeal(alert.dealId), targetPrice: alert.targetPrice }))
+          .map((alert) => ({ deal: findDeal(alert.dealId), targetPrice: alert.targetPrice, seenPrice: alert.seenPrice }))
           .filter((alert) => alert.deal);
         // An alert set during this visit wins over the stored one for the same deal.
         setPriceAlerts((previous) => [
@@ -306,7 +307,9 @@ function App() {
 
   useEffect(() => {
     if (authProvider !== "whatsapp" || !savedSyncReady) return;
-    saveAlerts(priceAlerts.map((alert) => ({ dealId: alert.deal.id, targetPrice: alert.targetPrice }))).catch(() => {});
+    saveAlerts(
+      priceAlerts.map((alert) => ({ dealId: alert.deal.id, targetPrice: alert.targetPrice, seenPrice: alert.seenPrice }))
+    ).catch(() => {});
   }, [priceAlerts, authProvider, savedSyncReady]);
 
   const handleGoogleSignIn = (profile) => {
@@ -352,12 +355,40 @@ function App() {
     setPage("home");
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Reached price alerts come first in the bell. They are worked out from the
+  // live prices, so they also appear after signing in again on any device.
+  const alertNotifications = reachedAlertNotifications(priceAlerts, catalogDeals);
+  const allNotifications = [...alertNotifications, ...notifications];
+  const unreadCount = allNotifications.filter((n) => !n.read).length;
 
-  const markRead = (id) =>
+  const acknowledge = (items) =>
+    setPriceAlerts((previous) => acknowledgeAlerts(previous, items.map((n) => n.alertDealId), catalogDeals));
+
+  const markRead = (id) => {
+    const reached = alertNotifications.find((n) => n.id === id);
+    if (reached) {
+      // Keep it in the list as read for this visit, and don't announce it again.
+      acknowledge([reached]);
+      setNotifications((previous) => [{ ...reached, id: Date.now() + Math.random(), read: true }, ...previous]);
+      return;
+    }
     setNotifications((previous) =>
       previous.map((item) => (item.id === id ? { ...item, read: true } : item))
     );
+  };
+
+  const markAllRead = () => {
+    acknowledge(alertNotifications);
+    setNotifications((previous) => [
+      ...alertNotifications.map((n) => ({ ...n, id: Date.now() + Math.random(), read: true })),
+      ...previous.map((n) => ({ ...n, read: true })),
+    ]);
+  };
+
+  const clearNotifications = () => {
+    acknowledge(alertNotifications);
+    setNotifications([]);
+  };
 
   // Shared frame for the signed-in screens.
   const renderShell = ({ active, back, children }) => (
@@ -436,7 +467,7 @@ function App() {
         back: backHome,
         children: (
           <div className="narrow">
-            {notifications.length === 0 ? (
+            {allNotifications.length === 0 && priceAlerts.length === 0 ? (
               <EmptyState
                 icon="bell"
                 title="No notifications yet"
@@ -446,7 +477,7 @@ function App() {
                   </button>
                 }
               >
-                Save a deal or set a price alert and updates will show up here.
+                Open any deal and tap "Set Price Alert". Your alerts and updates will show up here.
               </EmptyState>
             ) : (
               <>
@@ -463,47 +494,96 @@ function App() {
                       type="button"
                       className="btn btn--ghost btn--sm"
                       disabled={unreadCount === 0}
-                      onClick={() =>
-                        setNotifications((previous) => previous.map((n) => ({ ...n, read: true })))
-                      }
+                      onClick={markAllRead}
                     >
                       <Icon name="check" size={16} /> Mark all as read
                     </button>
                     <button
                       type="button"
                       className="btn btn--ghost btn--sm"
-                      onClick={() => setNotifications([])}
+                      disabled={allNotifications.length === 0}
+                      onClick={clearNotifications}
                     >
                       <Icon name="trash" size={16} /> Clear all
                     </button>
                   </div>
                 </div>
 
-                <ul className="notif-list">
-                  {notifications.map((n) => (
-                    <li key={n.id}>
-                      <button
-                        type="button"
-                        className={`notif ${n.read ? "" : "is-unread"}`}
-                        onClick={() => markRead(n.id)}
-                        aria-label={`${n.message} ${n.read ? "" : "(unread — mark as read)"}`}
-                      >
-                        <span className="notif__icon" aria-hidden="true">
-                          <Icon name="bell" size={18} />
-                        </span>
-                        <span className="notif__message">{n.message}</span>
-                        <span className="notif__time">{n.time}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {allNotifications.length > 0 ? (
+                  <ul className="notif-list">
+                    {allNotifications.map((n) => (
+                      <li key={n.id}>
+                        <button
+                          type="button"
+                          className={`notif ${n.read ? "" : "is-unread"}`}
+                          onClick={() => markRead(n.id)}
+                          aria-label={`${n.message} ${n.read ? "" : "(unread — mark as read)"}`}
+                        >
+                          <span className="notif__icon" aria-hidden="true">
+                            <Icon name="bell" size={18} />
+                          </span>
+                          <span className="notif__message">{n.message}</span>
+                          <span className="notif__time">{n.time}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="muted">No new notifications.</p>
+                )}
+
+                {priceAlerts.length > 0 && (
+                  <section className="notif-alerts" aria-labelledby="notif-alerts-title">
+                    <h2 id="notif-alerts-title">My Price Alerts</h2>
+                    <p className="muted">{priceAlerts.length} active alert(s).</p>
+                    <ul className="alert-list">
+                      {priceAlerts.map((alert) => (
+                        <li className={`alert-row tone-${toneFor(alert.deal.category)}`} key={alert.deal.id}>
+                          <span className="alert-row__emoji" aria-hidden="true">{alert.deal.icon}</span>
+                          <div className="alert-row__info">
+                            <span className="alert-row__store">{alert.deal.store}</span>
+                            <h3>{alert.deal.title}</h3>
+                          </div>
+                          <div className="alert-row__target">
+                            <span>Target price</span>
+                            <strong>₹{alert.targetPrice}</strong>
+                            {currentPrice(alert.deal, catalogDeals) && (
+                              <small className={isAlertReached(alert, catalogDeals) ? "is-reached" : ""}>
+                                {isAlertReached(alert, catalogDeals) ? "Reached · now " : "Now "}₹
+                                {currentPrice(alert.deal, catalogDeals).toLocaleString("en-IN")}
+                              </small>
+                            )}
+                          </div>
+                          <div className="alert-row__actions">
+                            <button
+                              type="button"
+                              className="btn btn--ghost btn--sm"
+                              onClick={() => openDeal(alert.deal)}
+                            >
+                              View deal
+                            </button>
+                            <button
+                              type="button"
+                              className="icon-btn icon-btn--danger"
+                              onClick={() => removeAlert(alert.deal.id)}
+                              aria-label={`Remove price alert for ${alert.deal.store}`}
+                              data-tip="Remove"
+                            >
+                              <Icon name="trash" size={18} />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
               </>
             )}
 
             <p className="demo-note demo-note--center">
               <Icon name="info" size={16} />
-              Demo notifications. They are created by your actions on this page and
-              are not sent by email or phone.
+              Demo notifications and alerts, using dummy test prices rather than the stores'
+              real prices. They appear here on the site and are not sent by email or phone.
             </p>
           </div>
         ),
@@ -533,6 +613,11 @@ function App() {
                 <p className="eyebrow">Price alert</p>
                 <h1>Set a Price Alert</h1>
                 <p className="muted">{alertDeal.title}</p>
+                {currentPrice(alertDeal, catalogDeals) && (
+                  <p className="alert-builder__price">
+                    Current price: <strong>₹{currentPrice(alertDeal, catalogDeals).toLocaleString("en-IN")}</strong>
+                  </p>
+                )}
 
                 <label htmlFor="alert-price" className="field-label">
                   Alert me when the price drops to (₹)
@@ -566,7 +651,8 @@ function App() {
 
             <p className="demo-note demo-note--center">
               <Icon name="info" size={16} />
-              Demo alert. Prices are not tracked and no notifications are sent yet.
+              Demo alert using a dummy test price, not the store's real price. You'll be
+              notified in the bell on this site.
             </p>
           </div>
         ),
@@ -706,81 +792,6 @@ function App() {
       });
     }
 
-    if (page === "alerts") {
-      return renderShell({
-        back: { label: "Back to Profile", onClick: () => setPage("profile") },
-        children: (
-          <div className="narrow">
-            {priceAlerts.length === 0 ? (
-              <EmptyState
-                icon="bell"
-                title="No price alerts yet"
-                action={
-                  <button type="button" className="btn btn--lime" onClick={() => setPage("home")}>
-                    Explore Deals <Icon name="arrowRight" size={18} />
-                  </button>
-                }
-              >
-                Open any deal and tap "Set Price Alert" to add one.
-              </EmptyState>
-            ) : (
-              <>
-                <div className="page-head">
-                  <div>
-                    <p className="eyebrow">Watching</p>
-                    <h1>My Price Alerts</h1>
-                    <p>{priceAlerts.length} active alert(s).</p>
-                  </div>
-                  <button type="button" className="btn btn--lime" onClick={() => setPage("home")}>
-                    Browse More Deals <Icon name="arrowRight" size={18} />
-                  </button>
-                </div>
-
-                <ul className="alert-list">
-                  {priceAlerts.map((alert) => (
-                    <li className={`alert-row tone-${toneFor(alert.deal.category)}`} key={alert.deal.id}>
-                      <span className="alert-row__emoji" aria-hidden="true">{alert.deal.icon}</span>
-                      <div className="alert-row__info">
-                        <span className="alert-row__store">{alert.deal.store}</span>
-                        <h3>{alert.deal.title}</h3>
-                      </div>
-                      <div className="alert-row__target">
-                        <span>Target price</span>
-                        <strong>₹{alert.targetPrice}</strong>
-                      </div>
-                      <div className="alert-row__actions">
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          onClick={() => openDeal(alert.deal)}
-                        >
-                          View deal
-                        </button>
-                        <button
-                          type="button"
-                          className="icon-btn icon-btn--danger"
-                          onClick={() => removeAlert(alert.deal.id)}
-                          aria-label={`Remove price alert for ${alert.deal.store}`}
-                          data-tip="Remove"
-                        >
-                          <Icon name="trash" size={18} />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            <p className="demo-note demo-note--center">
-              <Icon name="info" size={16} />
-              Demo alerts only. Prices are not tracked and no notifications are sent yet.
-            </p>
-          </div>
-        ),
-      });
-    }
-
     if (page === "profile") {
       return renderShell({
         active: "profile",
@@ -896,12 +907,6 @@ function App() {
                   <span>Saved deals</span>
                   <Icon name="arrowRight" size={18} className="stat-tile__arrow" />
                 </button>
-                <button type="button" className="stat-tile" onClick={() => setPage("alerts")}>
-                  <span className="stat-tile__icon"><Icon name="bell" /></span>
-                  <strong>{priceAlerts.length}</strong>
-                  <span>Price alerts</span>
-                  <Icon name="arrowRight" size={18} className="stat-tile__arrow" />
-                </button>
                 <button type="button" className="stat-tile" onClick={() => setPage("history")}>
                   <span className="stat-tile__icon"><Icon name="tag" /></span>
                   <strong>{couponHistory.length}</strong>
@@ -913,10 +918,6 @@ function App() {
               <div className="menu-card">
                 <button type="button" className="menu-card__item" onClick={() => setPage("wishlist")}>
                   <Icon name="heart" /> <span>View Wishlist</span>
-                  <Icon name="arrowRight" size={18} />
-                </button>
-                <button type="button" className="menu-card__item" onClick={() => setPage("alerts")}>
-                  <Icon name="bell" /> <span>Price Alerts</span>
                   <Icon name="arrowRight" size={18} />
                 </button>
                 <button type="button" className="menu-card__item" onClick={() => setPage("history")}>

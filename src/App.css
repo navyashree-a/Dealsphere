@@ -2750,6 +2750,36 @@
   text-align: right;
 }
 
+.notif-alerts {
+  display: grid;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.notif-alerts h2 {
+  font-size: 22px;
+}
+
+.alert-row__target small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alert-row__target small.is-reached {
+  color: var(--lime-text);
+}
+
+.alert-builder__price {
+  margin: 4px 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.alert-builder__price strong {
+  color: var(--ink);
+}
+
 .alert-row__target span {
   color: var(--lime-text);
   font-size: 11px;

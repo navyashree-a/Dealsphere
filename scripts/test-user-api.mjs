@@ -87,6 +87,14 @@ test("alerts are cleaned: one per deal, positive sensible prices only", async ()
   assert.equal((await call(users, "GET", "/api/me/alerts")).status, 401);
 });
 
+test("an alert's acknowledged price is kept, so its notification doesn't repeat", async () => {
+  const users = memoryStore();
+  const { cookie } = await signIn(users);
+  await call(users, "PUT", "/api/me/alerts", { cookie, body: { alerts: [{ dealId: 5, targetPrice: 100, seenPrice: 90 }, { dealId: 6, targetPrice: 100, seenPrice: -3 }] } });
+  const { alerts } = await (await call(users, "GET", "/api/me/alerts", { cookie })).json();
+  assert.deepEqual(alerts, [{ dealId: 5, targetPrice: 100, seenPrice: 90 }, { dealId: 6, targetPrice: 100 }]);
+});
+
 test("saved ids are cleaned: numbers only, no duplicates, signed-in only", async () => {
   const users = memoryStore();
   const { cookie } = await signIn(users);

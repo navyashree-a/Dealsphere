@@ -6,7 +6,7 @@
 //   POST /api/session/logout     -> 200                   ends the session, clears the cookie
 //   GET  /api/me/saved           -> 200 { ids } | 401     saved deal ids
 //   PUT  /api/me/saved { ids }   -> 200 { ids } | 401     replaces the saved deal ids
-//   GET  /api/me/alerts          -> 200 { alerts } | 401  price alerts: [{ dealId, targetPrice }]
+//   GET  /api/me/alerts          -> 200 { alerts } | 401  price alerts: [{ dealId, targetPrice, seenPrice? }]
 //   PUT  /api/me/alerts { alerts } -> 200 { alerts } | 401 replaces the price alerts
 //
 // Only deal ids (and target prices) are stored; the website looks the deals up
@@ -79,7 +79,13 @@ export async function putAlerts(request, store) {
     const dealId = Number(alert?.dealId);
     const targetPrice = Number(alert?.targetPrice);
     if (Number.isInteger(dealId) && dealId > 0 && targetPrice > 0 && targetPrice <= MAX_TARGET_PRICE) {
-      byDeal.set(dealId, { dealId, targetPrice: Math.round(targetPrice * 100) / 100 });
+      const seenPrice = Number(alert?.seenPrice);
+      byDeal.set(dealId, {
+        dealId,
+        targetPrice: Math.round(targetPrice * 100) / 100,
+        // Price when the customer last acknowledged this alert's notification.
+        ...(seenPrice > 0 && seenPrice <= MAX_TARGET_PRICE ? { seenPrice } : {}),
+      });
     }
   });
   const alerts = [...byDeal.values()].slice(0, MAX_ALERTS);

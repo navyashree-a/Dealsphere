@@ -71,6 +71,7 @@ export function normalizeFeed(feed, { topics = [], source = "", now = Date.now()
       affiliateUrl: offer.affiliate_url || "",
       terms: Array.isArray(offer.terms) ? offer.terms : [],
       minOrder: offer.min_order || null,
+      price: offer.price > 0 ? offer.price : null,
       // Last valid moment is the end of the expiry day.
       expiresAt: offer.ends_in_days == null ? null : new Date(today + (offer.ends_in_days + 1) * DAY_MS - 1).toISOString(),
       daysLeft: offer.ends_in_days ?? null,

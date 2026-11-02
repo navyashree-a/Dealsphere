@@ -25,7 +25,7 @@ export const fetchSavedIds = () => request("/api/me/saved").then((data) => data.
 
 export const saveSavedIds = (ids) => request("/api/me/saved", { method: "PUT", body: JSON.stringify({ ids }) });
 
-// Price alerts are stored as [{ dealId, targetPrice }].
+// Price alerts are stored as [{ dealId, targetPrice, seenPrice? }].
 export const fetchAlerts = () => request("/api/me/alerts").then((data) => data.alerts || []);
 
 export const saveAlerts = (alerts) => request("/api/me/alerts", { method: "PUT", body: JSON.stringify({ alerts }) });
