@@ -862,7 +862,8 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
-.topbar__links a:hover {
+.topbar__links a:hover,
+.topbar__links a.is-current {
   background: rgba(255, 255, 255, 0.07);
   color: var(--ink);
 }

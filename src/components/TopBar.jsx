@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "./Icon";
 import Logo from "./Logo";
+import useActiveSection from "./useActiveSection";
 
 // Shared sticky navigation used on every signed-in and browsing screen.
 function TopBar({
@@ -16,6 +17,7 @@ function TopBar({
   onOpenProfile,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const activeHref = useActiveSection(navLinks);
 
   return (
     <header className="topbar">
@@ -36,7 +38,13 @@ function TopBar({
             aria-label="Page sections"
           >
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
+              <a
+                key={link.href}
+                href={link.href}
+                className={activeHref === link.href ? "is-current" : undefined}
+                aria-current={activeHref === link.href ? "location" : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
                 {link.label}
               </a>
             ))}
