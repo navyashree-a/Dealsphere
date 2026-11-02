@@ -2198,12 +2198,6 @@
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--r-lg);
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
-  transition: transform 0.3s var(--ease), border-color 0.3s;
-}
-
-.benefit:hover {
-  border-color: rgba(183, 229, 49, 0.4);
-  transform: translateY(-4px);
 }
 
 .benefit__icon {
