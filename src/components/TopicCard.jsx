@@ -1,4 +1,5 @@
 import Icon from "./Icon";
+import useReveal from "./useReveal";
 import useTilt from "./useTilt";
 import { toneFor } from "../data/deals";
 
@@ -6,12 +7,16 @@ const storeLine = (stores) => (stores.length > 2 ? `${stores.slice(0, 2).join(" 
 
 // Homepage card for a topic ("Shoes & sneakers"). The whole card opens the
 // topic page, which lists every coupon, deal, bank offer and cashback for it.
-function TopicCard({ topic, onOpen }) {
+function TopicCard({ topic, onOpen, index = 0 }) {
   const tilt = useTilt(6);
+  const [revealRef, revealed] = useReveal();
 
   return (
     <article
-      className={`deal-card topic-card tone-${toneFor(topic.category)}`}
+      ref={revealRef}
+      className={`deal-card topic-card tone-${toneFor(topic.category)} ${revealed ? "is-revealed" : ""}`}
+      // Cards in the same row arrive one after another.
+      style={{ "--reveal-delay": `${(index % 3) * 110}ms` }}
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
     >

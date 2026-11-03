@@ -600,8 +600,8 @@ function Home({
           {filteredTopics.length > 0 ? (
             <>
               <div className="deal-grid">
-                {filteredTopics.slice(0, visibleCount).map((topic) => (
-                  <TopicCard key={topic.id} topic={topic} onOpen={() => openTopic(topic.id)} />
+                {filteredTopics.slice(0, visibleCount).map((topic, index) => (
+                  <TopicCard key={topic.id} topic={topic} index={index} onOpen={() => openTopic(topic.id)} />
                 ))}
               </div>
               {filteredTopics.length > visibleCount && (
