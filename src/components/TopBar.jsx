@@ -25,7 +25,7 @@ function TopBar({
         <div className="topbar__left">
           <Logo onClick={onHome} />
           {back && (
-            <button type="button" className="chip-btn topbar__back" onClick={back.onClick}>
+            <button type="button" className="chip-btn topbar__back" onClick={back.onClick} aria-label={back.label}>
               <Icon name="arrowLeft" size={16} />
               <span>{back.label}</span>
             </button>

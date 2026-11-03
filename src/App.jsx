@@ -327,7 +327,9 @@ function App() {
       setPendingDeal(null);
       setDealToView(null);
       setTopicToView(null);
-      setReturnPage(destination);
+      // The top "Sign in" button opens the profile when signed in, but signing
+      // in from it should land on the homepage.
+      setReturnPage(destination === "profile" ? "home" : destination);
       goAuth("login");
     }
   };

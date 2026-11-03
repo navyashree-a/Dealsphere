@@ -3980,10 +3980,6 @@
     height: 38px;
   }
 
-  .topbar__back {
-    display: none;
-  }
-
   .search {
     padding: 7px;
     flex-wrap: wrap;
