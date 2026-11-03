@@ -3788,6 +3788,17 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .store-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 18px;
+    align-items: center;
+  }
+
+  .store-card .text-btn {
+    grid-column: 2;
+  }
+
   .benefits__panel {
     grid-template-columns: 1fr;
   }
@@ -3932,9 +3943,25 @@
   }
 }
 
+@media (max-width: 960px) {
+  .search {
+    max-width: none;
+  }
+
+  .suggestions {
+    justify-content: center;
+  }
+}
+
 @media (max-width: 520px) {
   .logo {
     font-size: 19px;
+  }
+
+  /* Back to stacked inside the two-per-row phone cards. */
+  .store-card {
+    display: flex;
+    align-items: flex-start;
   }
 
   .logo__orb {
@@ -3958,17 +3985,21 @@
   }
 
   .search {
-    padding-left: 42px;
+    padding: 7px;
     flex-wrap: wrap;
   }
 
   .search__icon {
-    left: 14px;
+    left: 18px;
     top: 21px;
   }
 
   .search input {
-    flex-basis: calc(100% - 50px);
+    flex-basis: 100%;
+    padding-left: 38px;
+    padding-right: 8px;
+    font-size: 14px;
+    text-overflow: ellipsis;
   }
 
   .search__submit {
@@ -4010,9 +4041,33 @@
     padding: 12px 14px;
   }
 
-  .store-grid,
   .stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .store-grid {
+    grid-auto-rows: 1fr;
+    gap: 12px;
+  }
+
+  .store-card {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .store-card__logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    font-size: 23px;
+  }
+
+  .store-card h3 {
+    font-size: 17px;
+  }
+
+  .store-card p {
+    font-size: 13px;
   }
 
   .detail-stage {
@@ -4039,5 +4094,39 @@
 
   .alert-row__actions .btn {
     flex: 1;
+  }
+}
+
+/* The smallest phones: keep the logo and icons from colliding. */
+@media (max-width: 360px) {
+  .logo {
+    gap: 6px;
+    font-size: 16px;
+  }
+
+  .logo__orb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .topbar__inner,
+  .topbar__actions {
+    gap: 5px;
+  }
+
+  .icon-btn,
+  .profile-pill {
+    width: 34px;
+    height: 34px;
+  }
+
+  .store-card {
+    padding: 14px;
+  }
+
+  .store-card .text-btn {
+    gap: 4px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 }
