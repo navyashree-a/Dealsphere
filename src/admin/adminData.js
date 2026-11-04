@@ -14,7 +14,7 @@ export const ADMIN_USER = { id: "admin", name: "Admin (demo)", role: "admin" };
 // real provider is implied to be paying DealSphere.
 export const SAMPLE_NETWORKS = ["Sample Network A", "Sample Network B", "Sample Network C"];
 
-export const MERCHANTS = ["Amazon", "Myntra", "Flipkart", "Nykaa", "Food Store", "Home Store", "Travel Store"];
+export const MERCHANTS = ["Amazon", "Fashion Store", "Flipkart", "Nykaa", "Food Store", "Home Store", "Travel Store"];
 
 const ago = (days) => {
   const date = new Date();
@@ -87,7 +87,7 @@ const buildDeals = () => {
       title: "Winter jacket sale",
       description: "Outerwear for the season.",
       category: "Fashion",
-      merchant: "Myntra",
+      merchant: "Fashion Store",
       discount: "40% OFF",
       code: "WINTER40",
       url: "https://merchant.example/winter",
@@ -274,12 +274,12 @@ const buildFinance = () => {
   const commission = [
     ["COM-2026-0901", "Sample Network A", "Amazon", 48200, 2410, "Paid", "STM-A-AUG"],
     ["COM-2026-0902", "Sample Network A", "Flipkart", 31500, 1260, "Approved", "STM-A-SEP"],
-    ["COM-2026-0903", "Sample Network B", "Myntra", 22800, 1596, "Pending", "STM-B-SEP"],
+    ["COM-2026-0903", "Sample Network B", "Fashion Store", 22800, 1596, "Pending", "STM-B-SEP"],
     ["COM-2026-0904", "Sample Network B", "Nykaa", 9400, 564, "Estimated", ""],
     ["COM-2026-0905", "Sample Network C", "Travel Store", 64000, 1920, "Approved", "STM-C-SEP"],
     ["COM-2026-0906", "Sample Network C", "Food Store", 5200, 260, "Reversed", "STM-C-SEP"],
     ["COM-2026-0907", "Sample Network A", "Amazon", 17600, 880, "Estimated", ""],
-    ["COM-2026-0908", "Sample Network B", "Myntra", 12300, 861, "Disputed", "STM-B-SEP"],
+    ["COM-2026-0908", "Sample Network B", "Fashion Store", 12300, 861, "Disputed", "STM-B-SEP"],
   ].map(([ref, partner, merchant, saleValue, amount, status, statement], i) => ({
     id: ref,
     kind: "Commission",

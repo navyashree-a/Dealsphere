@@ -7,7 +7,7 @@ import { makeId, nowISO } from "./adminUtils";
 // Demo persistence: the admin prototype keeps its sample records in this
 // browser only, so changes survive a reload. This is not shared or durable
 // storage - ARD §16 requires a backend and database for that.
-const STORAGE_KEY = "dealsphere-admin-demo-v2";
+const STORAGE_KEY = "dealsphere-admin-demo-v3";
 
 const loadState = () => {
   try {

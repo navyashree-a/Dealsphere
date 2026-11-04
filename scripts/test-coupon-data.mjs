@@ -32,19 +32,24 @@ test("each intentionally invalid offer is rejected for the right reason", () => 
   assert.match(reasons["DF-9907"], /unknown offer type/);
 });
 
-test("every topic has all four offer types and every deal links safely to its own store", () => {
+test("every topic has offers, all four offer types exist, and every deal links safely to its own store", () => {
   const { deals } = run();
   topics.forEach((topic) => {
     const offers = deals.filter((d) => d.topic === topic.id);
-    TYPES.forEach((type) => assert.ok(offers.some((d) => d.type === type), `${topic.id} has no ${type}`));
+    assert.ok(offers.length > 0, `${topic.id} has no offers`);
     offers.forEach((d) => assert.equal(d.category, topic.category));
   });
+  TYPES.forEach((type) => assert.ok(deals.some((d) => d.type === type), `no ${type} offers`));
   CATEGORIES.forEach((c) => assert.ok(deals.some((d) => d.category === c), `no deals for ${c}`));
   deals.forEach((deal) => {
     const link = resolveDealLink(deal);
     assert.ok(link.ok, `deal ${deal.id} has no valid link`);
     assert.ok(link.href.startsWith("https://"));
   });
+});
+
+test("no made-up Myntra offers reach customers", () => {
+  assert.equal(run().deals.filter((d) => d.store === "Myntra").length, 0);
 });
 
 test("ids are unique; coupons have codes; bank offers and cashback name a partner", () => {
@@ -88,8 +93,8 @@ test("topic summaries count offers by type and find the best % off", () => {
   const shoes = summaries.find((t) => t.id === "shoes");
   assert.equal(shoes.offerCount, deals.filter((d) => d.topic === "shoes").length);
   assert.equal(Object.values(shoes.typeCounts).reduce((a, b) => a + b, 0), shoes.offerCount);
-  assert.equal(shoes.bestDiscount, "Up to 50% OFF");
-  assert.deepEqual(shoes.stores.sort(), ["AJIO", "Amazon", "Flipkart", "Myntra"]);
+  assert.equal(shoes.bestDiscount, "Up to 40% OFF");
+  assert.deepEqual(shoes.stores.sort(), ["AJIO", "Amazon", "Flipkart"]);
   assert.equal(discountPercent("Flat ₹400 OFF"), 0);
   assert.equal(discountPercent("7.5% Instant discount"), 7.5);
 });
@@ -130,11 +135,10 @@ test("GET /api/deals/:id returns one deal, 404 otherwise", async () => {
 
 test("GET /go/:id redirects to that offer's own products on the store", () => {
   const cases = {
-    101: "https://www.myntra.com/casual-shoes/neemans/neemans-max-cush-slip-ons-for-men/31739187/buy",
     103: "https://www.amazon.in/dp/B0CPVQ59FP",
     104: "https://www.ajio.com/nike-court-borough-colourblock-low-top-sneakers/p/460205783_white",
     105: "https://www.flipkart.com/campus-mike-n-running-shoes-men/p/itm27c989f1e20c6?pid=SHOG4G3XXA5GHCY7",
-    106: "https://www.myntra.com/shoes", // store-wide bank offer stays on the listing
+    108: "https://www.flipkart.com/search?q=shoes", // store-wide bank offer stays on the listing
     401: "https://www.flipkart.com/search?q=smartphones",
     601: "https://www.croma.com/searchB?q=laptop%3Arelevance&text=laptop",
     1301: "https://www.makemytrip.com/hotels/",

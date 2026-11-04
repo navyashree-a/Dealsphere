@@ -10,7 +10,7 @@
 // landing_url is where "View Deal" goes on the store's own site:
 //   - Product offers link to ONE real product page, picked from the store and
 //     opened in a browser to confirm it loads and is in stock (30 Oct 2026).
-//     So far: the Shoes topic (DF-101, 103, 104, 105).
+//     So far: the Shoes topic (DF-103, 104, 105).
 //   - Store-wide offers (sales, bank offers, cashback) and topics not yet
 //     converted link to a search/category listing (formats checked Oct 2026).
 // Products can sell out or move; a real feed keeps these links current.
@@ -24,6 +24,9 @@
 // price is a DUMMY current price in rupees, used to test price alerts. It is
 // not the real price on the store's page. Change one here to simulate a drop;
 // a real product feed would supply live prices.
+//
+// There are no made-up Myntra offers: DealSphere is applying to Myntra's real
+// affiliate program. (The TEST entries below are never shown to customers.)
 //
 // A few entries are intentionally invalid (marked TEST) to prove the adapter
 // rejects them.
@@ -45,30 +48,23 @@ const MMT_HOTELS = "https://www.makemytrip.com/hotels/";
 
 export const dummyCouponFeed = [
   // ---------- Shoes & sneakers ----------
-  { offer_id: "DF-101", topic: "shoes", merchant: "Myntra", type: "coupon", code: "STYLE30", price: 2499, discount_text: "30% OFF", title: "NEEMANS Max Cush slip-ons for men", description: "Cushioned slip-on casual shoes.", landing_url: "https://www.myntra.com/casual-shoes/neemans/neemans-max-cush-slip-ons-for-men/31739187/buy", ends_in_days: 12, min_order: 999, terms: ["Maximum discount ₹500."], icon: "👟", featured: true },
-  { offer_id: "DF-102", topic: "shoes", merchant: "Myntra", type: "deal", price: 1999, discount_text: "Up to 50% OFF", title: "Sneaker sale", description: "Sporty and casual sneakers on sale.", landing_url: myntra("shoes"), ends_in_days: 5, terms: ["Discount already applied on product page."], icon: "👟" },
   { offer_id: "DF-103", topic: "shoes", merchant: "Amazon", type: "coupon", code: "RUNFAST", price: 3499, discount_text: "Flat ₹400 OFF", title: "adidas Enry Flux running shoes for men", description: "Lightweight everyday running shoes.", landing_url: "https://www.amazon.in/dp/B0CPVQ59FP", ends_in_days: 9, min_order: 2499, terms: ["Valid on selected sellers."], icon: "🏃" },
   { offer_id: "DF-104", topic: "shoes", merchant: "AJIO", type: "coupon", code: "KICKS20", price: 4295, discount_text: "20% OFF", title: "Nike Court Borough low-top sneakers", description: "White colourblock sneakers for men.", landing_url: "https://www.ajio.com/nike-court-borough-colourblock-low-top-sneakers/p/460205783_white", ends_in_days: 2, min_order: 1499, terms: ["Valid once per account."], icon: "👟" },
   { offer_id: "DF-105", topic: "shoes", merchant: "Flipkart", type: "deal", price: 1299, discount_text: "Min 40% OFF", title: "Campus Mike (N) running shoes for men", description: "Budget running and training shoes.", landing_url: "https://www.flipkart.com/campus-mike-n-running-shoes-men/p/itm27c989f1e20c6?pid=SHOG4G3XXA5GHCY7", ends_in_days: 7, terms: ["Prices as shown on Flipkart."], icon: "👟" },
-  { offer_id: "DF-106", topic: "shoes", merchant: "Myntra", type: "bank_offer", partner: "HDFC Bank credit cards", price: 2999, discount_text: "10% Instant discount", title: "10% off with HDFC Bank credit cards", description: "Instant discount on footwear paid with HDFC Bank credit cards.", landing_url: myntra("shoes"), ends_in_days: 14, min_order: 2999, terms: ["Maximum discount ₹750.", "Not valid on EMI transactions."], icon: "💳" },
   { offer_id: "DF-107", topic: "shoes", merchant: "Amazon", type: "cashback", partner: "Amazon Pay UPI", price: 1899, discount_text: "₹150 Cashback", title: "Cashback with Amazon Pay UPI", description: "Get cashback on shoes paid with Amazon Pay UPI.", landing_url: amazon("shoes"), ends_in_days: 20, min_order: 1500, terms: ["Cashback credited within 3 days.", "Once per user."], icon: "💸" },
   { offer_id: "DF-108", topic: "shoes", merchant: "Flipkart", type: "bank_offer", partner: "Axis Bank credit cards", price: 2199, discount_text: "5% Cashback", title: "5% back with Axis Bank credit cards", description: "Unlimited cashback on footwear orders.", landing_url: flipkart("shoes"), ends_in_days: null, terms: ["Credited to the card statement."], icon: "💳" },
 
   // ---------- Watches ----------
-  { offer_id: "DF-201", topic: "watches", merchant: "Myntra", type: "coupon", code: "WATCH20", price: 2495, discount_text: "20% OFF", title: "Analog and smart watches", description: "Extra savings on watches for men and women.", landing_url: myntra("watches"), ends_in_days: 12, min_order: 1499, terms: ["Maximum discount ₹600."], icon: "⌚", featured: true },
   { offer_id: "DF-202", topic: "watches", merchant: "Amazon", type: "deal", price: 3195, discount_text: "Up to 60% OFF", title: "Titan and Fastrack watches", description: "Popular analog watch brands on sale.", landing_url: amazon("titan watches"), ends_in_days: 6, terms: ["Prices as shown on Amazon."], icon: "⌚" },
   { offer_id: "DF-203", topic: "watches", merchant: "Flipkart", type: "coupon", code: "TIME500", price: 3499, discount_text: "Flat ₹500 OFF", title: "Smartwatches", description: "Fitness tracking and calling smartwatches.", landing_url: flipkart("smartwatches"), ends_in_days: 3, min_order: 2999, terms: ["Valid on selected brands."], icon: "⌚" },
   { offer_id: "DF-204", topic: "watches", merchant: "AJIO", type: "deal", price: 1799, discount_text: "Up to 45% OFF", title: "Fashion watches", description: "Statement watches for every outfit.", landing_url: ajio("watches"), ends_in_days: 10, terms: ["While stocks last."], icon: "⌚" },
-  { offer_id: "DF-205", topic: "watches", merchant: "Myntra", type: "bank_offer", partner: "ICICI Bank credit cards", price: 3995, discount_text: "10% Instant discount", title: "10% off with ICICI Bank credit cards", description: "Instant discount on watches paid with ICICI Bank credit cards.", landing_url: myntra("watches"), ends_in_days: 8, min_order: 3000, terms: ["Maximum discount ₹1,000."], icon: "💳" },
   { offer_id: "DF-206", topic: "watches", merchant: "Amazon", type: "cashback", partner: "Amazon Pay ICICI Bank credit card", price: 2595, discount_text: "5% Cashback", title: "5% back with Amazon Pay ICICI card", description: "Cashback on watches for card holders.", landing_url: amazon("watches"), ends_in_days: null, terms: ["Credited as Amazon Pay balance."], icon: "💸" },
 
   // ---------- Kurtas & ethnic wear ----------
-  { offer_id: "DF-301", topic: "ethnic-wear", merchant: "Myntra", type: "coupon", code: "ETHNIC25", price: 1299, discount_text: "25% OFF", title: "Kurtas and ethnic wear", description: "Festive kurtas, sets and dupattas.", landing_url: myntra("kurtas"), ends_in_days: 2, min_order: 999, terms: ["Not valid with other coupons."], icon: "👘", featured: true },
   { offer_id: "DF-302", topic: "ethnic-wear", merchant: "AJIO", type: "coupon", code: "FESTIVE300", price: 1899, discount_text: "Flat ₹300 OFF", title: "Kurta sets", description: "Matching kurta sets for the festive season.", landing_url: ajio("kurta sets"), ends_in_days: 9, min_order: 1299, terms: ["Valid on full-price items."], icon: "👘" },
   { offer_id: "DF-303", topic: "ethnic-wear", merchant: "Amazon", type: "deal", price: 899, discount_text: "Up to 70% OFF", title: "Women's kurtas", description: "Cotton and rayon kurtas.", landing_url: amazon("womens kurtas"), ends_in_days: 4, terms: ["Prices as shown on Amazon."], icon: "👗" },
   { offer_id: "DF-304", topic: "ethnic-wear", merchant: "Flipkart", type: "deal", price: 1099, discount_text: "Min 50% OFF", title: "Men's ethnic wear", description: "Kurtas and Nehru jackets.", landing_url: flipkart("mens kurta"), ends_in_days: 11, terms: ["Prices as shown on Flipkart."], icon: "👔" },
   { offer_id: "DF-305", topic: "ethnic-wear", merchant: "AJIO", type: "bank_offer", partner: "SBI credit cards", price: 2699, discount_text: "10% Instant discount", title: "10% off with SBI credit cards", description: "Instant discount on ethnic wear.", landing_url: ajio("kurtas"), ends_in_days: 6, min_order: 2499, terms: ["Maximum discount ₹500."], icon: "💳" },
-  { offer_id: "DF-306", topic: "ethnic-wear", merchant: "Myntra", type: "cashback", partner: "Paytm UPI", price: 1399, discount_text: "₹100 Cashback", title: "Cashback with Paytm UPI", description: "Pay with Paytm UPI and get cashback.", landing_url: myntra("kurtas"), ends_in_days: 15, min_order: 1000, terms: ["Once per user."], icon: "💸" },
 
   // ---------- Smartphones ----------
   { offer_id: "DF-401", topic: "smartphones", merchant: "Flipkart", type: "coupon", code: "PHONE1000", price: 18999, discount_text: "Flat ₹1,000 OFF", title: "Smartphones", description: "Save on the latest smartphones.", landing_url: flipkart("smartphones"), ends_in_days: 6, min_order: 14999, terms: ["Valid on selected models.", "One use per customer."], icon: "📱", featured: true },
@@ -104,11 +100,9 @@ export const dummyCouponFeed = [
 
   // ---------- Makeup & fragrances ----------
   { offer_id: "DF-801", topic: "makeup", merchant: "Nykaa", type: "coupon", code: "LIPS20", price: 699, discount_text: "20% OFF", title: "Lipsticks and lip care", description: "Matte, gloss and tinted lip products.", landing_url: nykaa("lipstick"), ends_in_days: 8, min_order: 499, terms: ["Valid on selected brands."], icon: "💄", featured: true },
-  { offer_id: "DF-802", topic: "makeup", merchant: "Myntra", type: "coupon", code: "GLAM10", price: 1499, discount_text: "10% OFF", title: "Perfumes", description: "Perfumes and body mists.", landing_url: myntra("perfumes"), ends_in_days: 15, min_order: 999, terms: ["Valid on beauty category only."], icon: "🌸" },
   { offer_id: "DF-803", topic: "makeup", merchant: "Amazon", type: "deal", price: 1099, discount_text: "Up to 50% OFF", title: "Makeup kits", description: "Complete makeup kits and palettes.", landing_url: amazon("makeup kit"), ends_in_days: 5, terms: ["Prices as shown on Amazon."], icon: "🎨" },
   { offer_id: "DF-804", topic: "makeup", merchant: "Flipkart", type: "deal", price: 499, discount_text: "Min 30% OFF", title: "Deodorants and perfumes", description: "Everyday fragrances.", landing_url: flipkart("perfume"), ends_in_days: 2, terms: ["Prices as shown on Flipkart."], icon: "🌸" },
   { offer_id: "DF-805", topic: "makeup", merchant: "Nykaa", type: "bank_offer", partner: "ICICI Bank credit cards", price: 2199, discount_text: "15% Instant discount", title: "15% off with ICICI Bank cards", description: "Instant discount on makeup.", landing_url: nykaa("lipstick"), ends_in_days: 4, min_order: 1999, terms: ["Maximum discount ₹400."], icon: "💳" },
-  { offer_id: "DF-806", topic: "makeup", merchant: "Myntra", type: "cashback", partner: "Paytm UPI", price: 999, discount_text: "₹50 Cashback", title: "Cashback with Paytm UPI", description: "Pay with Paytm UPI and get cashback.", landing_url: myntra("perfumes"), ends_in_days: 10, min_order: 799, terms: ["Once per user."], icon: "💸" },
 
   // ---------- Food delivery & dining ----------
   { offer_id: "DF-901", topic: "food", merchant: "Swiggy", type: "coupon", code: "FOOD25", price: 399, discount_text: "25% OFF", title: "Food and restaurant offers", description: "Savings from partner restaurants.", landing_url: SWIGGY, ends_in_days: 12, min_order: 249, terms: ["Maximum discount ₹100."], icon: "🍕", featured: true },

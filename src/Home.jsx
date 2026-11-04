@@ -27,7 +27,7 @@ const navLinks = [
   { href: "#stores", label: "Stores" },
 ];
 
-const searchSuggestions = ["Myntra", "Amazon", "Travel", "Beauty"];
+const searchSuggestions = ["Shoes", "Amazon", "Travel", "Beauty"];
 
 const scrollToId = (id) => {
   setTimeout(() => {

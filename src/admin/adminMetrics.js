@@ -23,7 +23,7 @@ export const CATEGORY_SHARE = {
 
 export const STORE_SHARE = {
   Amazon: 0.26,
-  Myntra: 0.2,
+  "Fashion Store": 0.2,
   Flipkart: 0.17,
   Nykaa: 0.13,
   "Food Store": 0.09,
@@ -73,7 +73,7 @@ export const sum = (rows, key) => rows.reduce((total, row) => total + (row[key] 
 
 export const searchTerms = (days) =>
   [
-    ["myntra", 0.11, 0.96],
+    ["fashion", 0.11, 0.96],
     ["headphones", 0.09, 0.92],
     ["tech20", 0.07, 1],
     ["travel deals", 0.065, 0.88],

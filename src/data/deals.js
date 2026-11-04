@@ -23,13 +23,13 @@ export const curatedDeals = [
   {
     id: 1,
     category: "Fashion",
-    store: "Myntra",
+    store: "Fashion Store",
     title: "Shoes and accessories",
     description: "Explore fashion offers.",
     discount: "30% OFF",
-    code: "STYLE30",
+    code: "SAMPLE30",
     icon: "👟",
-    productUrl: "https://www.myntra.com/shoes",
+    productUrl: "https://merchant.example/shoes",
     affiliateUrl: "",
   },
   {
