@@ -48,8 +48,8 @@ test("every topic has offers, all four offer types exist, and every deal links s
   });
 });
 
-test("no made-up Myntra offers reach customers", () => {
-  assert.equal(run().deals.filter((d) => d.store === "Myntra").length, 0);
+test("no made-up Myntra or AJIO offers reach customers", () => {
+  assert.equal(run().deals.filter((d) => ["Myntra", "AJIO"].includes(d.store)).length, 0);
 });
 
 test("ids are unique; coupons have codes; bank offers and cashback name a partner", () => {
@@ -94,7 +94,7 @@ test("topic summaries count offers by type and find the best % off", () => {
   assert.equal(shoes.offerCount, deals.filter((d) => d.topic === "shoes").length);
   assert.equal(Object.values(shoes.typeCounts).reduce((a, b) => a + b, 0), shoes.offerCount);
   assert.equal(shoes.bestDiscount, "Up to 40% OFF");
-  assert.deepEqual(shoes.stores.sort(), ["AJIO", "Amazon", "Flipkart"]);
+  assert.deepEqual(shoes.stores.sort(), ["Amazon", "Flipkart"]);
   assert.equal(discountPercent("Flat ₹400 OFF"), 0);
   assert.equal(discountPercent("7.5% Instant discount"), 7.5);
 });
@@ -117,8 +117,8 @@ test("GET /api/deals filters by topic, type, category and store", async () => {
   assert.ok(bank.count > 0 && bank.deals.every((d) => d.topic === "shoes" && d.type === "bank_offer"));
   const travel = await get("/api/deals?category=Travel").json();
   assert.ok(travel.count > 0 && travel.deals.every((d) => d.category === "Travel"));
-  const ajio = await get("/api/deals?store=ajio").json();
-  assert.ok(ajio.count > 0 && ajio.deals.every((d) => d.store === "AJIO"));
+  const croma = await get("/api/deals?store=croma").json();
+  assert.ok(croma.count > 0 && croma.deals.every((d) => d.store === "Croma"));
 });
 
 test("GET /api/topics returns every topic with counts", async () => {
@@ -136,7 +136,6 @@ test("GET /api/deals/:id returns one deal, 404 otherwise", async () => {
 test("GET /go/:id redirects to that offer's own products on the store", () => {
   const cases = {
     103: "https://www.amazon.in/dp/B0CPVQ59FP",
-    104: "https://www.ajio.com/nike-court-borough-colourblock-low-top-sneakers/p/460205783_white",
     105: "https://www.flipkart.com/campus-mike-n-running-shoes-men/p/itm27c989f1e20c6?pid=SHOG4G3XXA5GHCY7",
     108: "https://www.flipkart.com/search?q=shoes", // store-wide bank offer stays on the listing
     401: "https://www.flipkart.com/search?q=smartphones",

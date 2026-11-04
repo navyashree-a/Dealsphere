@@ -10,7 +10,7 @@
 // landing_url is where "View Deal" goes on the store's own site:
 //   - Product offers link to ONE real product page, picked from the store and
 //     opened in a browser to confirm it loads and is in stock (30 Oct 2026).
-//     So far: the Shoes topic (DF-103, 104, 105).
+//     So far: the Shoes topic (DF-103, 105).
 //   - Store-wide offers (sales, bank offers, cashback) and topics not yet
 //     converted link to a search/category listing (formats checked Oct 2026).
 // Products can sell out or move; a real feed keeps these links current.
@@ -25,8 +25,8 @@
 // not the real price on the store's page. Change one here to simulate a drop;
 // a real product feed would supply live prices.
 //
-// There are no made-up Myntra offers: DealSphere is applying to Myntra's real
-// affiliate program. (The TEST entries below are never shown to customers.)
+// There are no made-up Myntra or AJIO offers: DealSphere is applying to their
+// real affiliate programs. (The TEST entries below are never shown to customers.)
 //
 // A few entries are intentionally invalid (marked TEST) to prove the adapter
 // rejects them.
@@ -36,7 +36,6 @@ export const DUMMY_FEED_SOURCE = "Dummy coupon feed (test data)";
 const q = (text) => encodeURIComponent(text).replace(/%20/g, "+");
 const amazon = (text) => `https://www.amazon.in/s?k=${q(text)}`;
 const flipkart = (text) => `https://www.flipkart.com/search?q=${q(text)}`;
-const ajio = (text) => `https://www.ajio.com/search/?text=${q(text)}`;
 const nykaa = (text) => `https://www.nykaa.com/search/result/?q=${q(text)}`;
 const croma = (text) => `https://www.croma.com/searchB?q=${encodeURIComponent(text)}%3Arelevance&text=${encodeURIComponent(text)}`;
 const myntra = (path) => `https://www.myntra.com/${path}`;
@@ -49,7 +48,6 @@ const MMT_HOTELS = "https://www.makemytrip.com/hotels/";
 export const dummyCouponFeed = [
   // ---------- Shoes & sneakers ----------
   { offer_id: "DF-103", topic: "shoes", merchant: "Amazon", type: "coupon", code: "RUNFAST", price: 3499, discount_text: "Flat ₹400 OFF", title: "adidas Enry Flux running shoes for men", description: "Lightweight everyday running shoes.", landing_url: "https://www.amazon.in/dp/B0CPVQ59FP", ends_in_days: 9, min_order: 2499, terms: ["Valid on selected sellers."], icon: "🏃" },
-  { offer_id: "DF-104", topic: "shoes", merchant: "AJIO", type: "coupon", code: "KICKS20", price: 4295, discount_text: "20% OFF", title: "Nike Court Borough low-top sneakers", description: "White colourblock sneakers for men.", landing_url: "https://www.ajio.com/nike-court-borough-colourblock-low-top-sneakers/p/460205783_white", ends_in_days: 2, min_order: 1499, terms: ["Valid once per account."], icon: "👟" },
   { offer_id: "DF-105", topic: "shoes", merchant: "Flipkart", type: "deal", price: 1299, discount_text: "Min 40% OFF", title: "Campus Mike (N) running shoes for men", description: "Budget running and training shoes.", landing_url: "https://www.flipkart.com/campus-mike-n-running-shoes-men/p/itm27c989f1e20c6?pid=SHOG4G3XXA5GHCY7", ends_in_days: 7, terms: ["Prices as shown on Flipkart."], icon: "👟" },
   { offer_id: "DF-107", topic: "shoes", merchant: "Amazon", type: "cashback", partner: "Amazon Pay UPI", price: 1899, discount_text: "₹150 Cashback", title: "Cashback with Amazon Pay UPI", description: "Get cashback on shoes paid with Amazon Pay UPI.", landing_url: amazon("shoes"), ends_in_days: 20, min_order: 1500, terms: ["Cashback credited within 3 days.", "Once per user."], icon: "💸" },
   { offer_id: "DF-108", topic: "shoes", merchant: "Flipkart", type: "bank_offer", partner: "Axis Bank credit cards", price: 2199, discount_text: "5% Cashback", title: "5% back with Axis Bank credit cards", description: "Unlimited cashback on footwear orders.", landing_url: flipkart("shoes"), ends_in_days: null, terms: ["Credited to the card statement."], icon: "💳" },
@@ -57,14 +55,11 @@ export const dummyCouponFeed = [
   // ---------- Watches ----------
   { offer_id: "DF-202", topic: "watches", merchant: "Amazon", type: "deal", price: 3195, discount_text: "Up to 60% OFF", title: "Titan and Fastrack watches", description: "Popular analog watch brands on sale.", landing_url: amazon("titan watches"), ends_in_days: 6, terms: ["Prices as shown on Amazon."], icon: "⌚" },
   { offer_id: "DF-203", topic: "watches", merchant: "Flipkart", type: "coupon", code: "TIME500", price: 3499, discount_text: "Flat ₹500 OFF", title: "Smartwatches", description: "Fitness tracking and calling smartwatches.", landing_url: flipkart("smartwatches"), ends_in_days: 3, min_order: 2999, terms: ["Valid on selected brands."], icon: "⌚" },
-  { offer_id: "DF-204", topic: "watches", merchant: "AJIO", type: "deal", price: 1799, discount_text: "Up to 45% OFF", title: "Fashion watches", description: "Statement watches for every outfit.", landing_url: ajio("watches"), ends_in_days: 10, terms: ["While stocks last."], icon: "⌚" },
   { offer_id: "DF-206", topic: "watches", merchant: "Amazon", type: "cashback", partner: "Amazon Pay ICICI Bank credit card", price: 2595, discount_text: "5% Cashback", title: "5% back with Amazon Pay ICICI card", description: "Cashback on watches for card holders.", landing_url: amazon("watches"), ends_in_days: null, terms: ["Credited as Amazon Pay balance."], icon: "💸" },
 
   // ---------- Kurtas & ethnic wear ----------
-  { offer_id: "DF-302", topic: "ethnic-wear", merchant: "AJIO", type: "coupon", code: "FESTIVE300", price: 1899, discount_text: "Flat ₹300 OFF", title: "Kurta sets", description: "Matching kurta sets for the festive season.", landing_url: ajio("kurta sets"), ends_in_days: 9, min_order: 1299, terms: ["Valid on full-price items."], icon: "👘" },
   { offer_id: "DF-303", topic: "ethnic-wear", merchant: "Amazon", type: "deal", price: 899, discount_text: "Up to 70% OFF", title: "Women's kurtas", description: "Cotton and rayon kurtas.", landing_url: amazon("womens kurtas"), ends_in_days: 4, terms: ["Prices as shown on Amazon."], icon: "👗" },
   { offer_id: "DF-304", topic: "ethnic-wear", merchant: "Flipkart", type: "deal", price: 1099, discount_text: "Min 50% OFF", title: "Men's ethnic wear", description: "Kurtas and Nehru jackets.", landing_url: flipkart("mens kurta"), ends_in_days: 11, terms: ["Prices as shown on Flipkart."], icon: "👔" },
-  { offer_id: "DF-305", topic: "ethnic-wear", merchant: "AJIO", type: "bank_offer", partner: "SBI credit cards", price: 2699, discount_text: "10% Instant discount", title: "10% off with SBI credit cards", description: "Instant discount on ethnic wear.", landing_url: ajio("kurtas"), ends_in_days: 6, min_order: 2499, terms: ["Maximum discount ₹500."], icon: "💳" },
 
   // ---------- Smartphones ----------
   { offer_id: "DF-401", topic: "smartphones", merchant: "Flipkart", type: "coupon", code: "PHONE1000", price: 18999, discount_text: "Flat ₹1,000 OFF", title: "Smartphones", description: "Save on the latest smartphones.", landing_url: flipkart("smartphones"), ends_in_days: 6, min_order: 14999, terms: ["Valid on selected models.", "One use per customer."], icon: "📱", featured: true },
