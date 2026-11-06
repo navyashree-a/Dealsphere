@@ -13,7 +13,16 @@ export const topics = [
     // https://unsplash.com/photos/white-and-orange-athletic-sneaker-LG88A2XgIXY
     image: "/topics/shoes.webp",
   },
-  { id: "watches", name: "Watches", category: "Fashion", icon: "⌚", description: "Analog, digital and smart watches." },
+  {
+    id: "watches",
+    name: "Watches",
+    category: "Fashion",
+    icon: "⌚",
+    description: "Analog, digital and smart watches.",
+    // Photo by Fabian Heimann on Unsplash (free Unsplash License), cropped:
+    // https://unsplash.com/photos/round-silver-colored-fossil-chronograph-watch-at-922-with-brown-leather-band-4R_WEmhx8og
+    image: "/topics/watches.webp",
+  },
   { id: "ethnic-wear", name: "Kurtas & ethnic wear", category: "Fashion", icon: "👘", description: "Kurtas, kurta sets and festive wear." },
   { id: "smartphones", name: "Smartphones", category: "Electronics", icon: "📱", description: "5G phones from every major brand." },
   { id: "audio", name: "Headphones & earbuds", category: "Electronics", icon: "🎧", description: "Wireless earbuds and headphones." },
