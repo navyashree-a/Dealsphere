@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DealsContext } from "./dealsContext";
+import { DealsContext, DealsReadyContext } from "./dealsContext";
 import { deals as bundledDeals } from "./deals";
 
 // Loads deals from the backend (server/dealsApi.js). Each API deal carries a
@@ -9,6 +9,7 @@ const REFRESH_MS = 5 * 60 * 1000;
 
 function DealsProvider({ children }) {
   const [deals, setDeals] = useState(bundledDeals);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -17,9 +18,12 @@ function DealsProvider({ children }) {
         .then((response) => (response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`))))
         .then((data) => {
           if (Array.isArray(data.deals)) setDeals(data.deals);
+          setReady(true);
         })
         .catch((error) => {
-          if (error.name !== "AbortError") console.warn("[DealSphere] Deals API unavailable, using bundled deals.", error);
+          if (error.name === "AbortError") return;
+          console.warn("[DealSphere] Deals API unavailable, using bundled deals.", error);
+          setReady(true);
         });
     load();
     const timer = setInterval(load, REFRESH_MS);
@@ -29,7 +33,11 @@ function DealsProvider({ children }) {
     };
   }, []);
 
-  return <DealsContext.Provider value={deals}>{children}</DealsContext.Provider>;
+  return (
+    <DealsContext.Provider value={deals}>
+      <DealsReadyContext.Provider value={ready}>{children}</DealsReadyContext.Provider>
+    </DealsContext.Provider>
+  );
 }
 
 export default DealsProvider;

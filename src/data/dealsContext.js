@@ -7,3 +7,9 @@ import { deals as bundledDeals } from "./deals";
 export const DealsContext = createContext(bundledDeals);
 
 export const useDeals = () => useContext(DealsContext);
+
+// False until the first answer from the backend (or a failed attempt). Wait for
+// this before matching stored deal ids against the catalog.
+export const DealsReadyContext = createContext(true);
+
+export const useDealsReady = () => useContext(DealsReadyContext);

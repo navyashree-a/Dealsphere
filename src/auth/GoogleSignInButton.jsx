@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "../components/Icon";
-import { GOOGLE_CLIENT_ID, isGoogleConfigured, loadGoogleScript, readGoogleProfile } from "./googleAuth";
+import { GOOGLE_CLIENT_ID, isGoogleConfigured, loadGoogleScript } from "./googleAuth";
+import { signInWithGoogleCredential } from "./session";
 
 // Google's multicolour "G" mark, used only on the not-configured fallback
 // button. When configured, Google renders its own official button.
@@ -39,16 +40,19 @@ function GoogleSignInButton({ onSuccess, mode = "signin" }) {
           ux_mode: "popup",
           auto_select: false,
           cancel_on_tap_outside: true,
+          // The server checks Google's token before anyone is signed in.
           callback: (response) => {
-            try {
-              const profile = readGoogleProfile(response.credential);
-              if (!profile.email) throw new Error("missing email");
-              setMessage("");
-              onSuccessRef.current(profile);
-            } catch {
-              setStatus("error");
-              setMessage("Google didn't return your account details. Please try again.");
-            }
+            setStatus("verifying");
+            setMessage("");
+            signInWithGoogleCredential(response.credential)
+              .then((profile) => {
+                setStatus("ready");
+                onSuccessRef.current(profile);
+              })
+              .catch((error) => {
+                setStatus("error");
+                setMessage(error.message || "Google sign-in didn't work. Please try again.");
+              });
           },
         });
         const width = Math.round(Math.min(400, Math.max(220, slotRef.current.offsetWidth || 320)));
@@ -105,6 +109,11 @@ function GoogleSignInButton({ onSuccess, mode = "signin" }) {
       {status === "loading" && (
         <div className="google-btn google-btn--loading" aria-live="polite">
           <GoogleMark /> Loading Google sign-in…
+        </div>
+      )}
+      {status === "verifying" && (
+        <div className="google-btn google-btn--loading" aria-live="polite">
+          <GoogleMark /> Signing you in…
         </div>
       )}
       {status === "error" && (

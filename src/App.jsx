@@ -18,7 +18,10 @@ import WhatsAppOtpLogin from "./auth/WhatsAppOtpLogin";
 import { maskPhone } from "./auth/whatsappOtp";
 import { googleSignOut } from "./auth/googleAuth";
 import { endServerSession, fetchAlerts, fetchSavedIds, fetchSession, saveAlerts, saveSavedIds } from "./auth/session";
-import { useDeals } from "./data/dealsContext";
+
+// Sign-in methods the server verifies; their saved deals and alerts are stored per account.
+const hasServerAccount = (provider) => provider === "whatsapp" || provider === "google";
+import { useDeals, useDealsReady } from "./data/dealsContext";
 import { prepareAvatar } from "./utils/avatarImage";
 import { acknowledgeAlerts, currentPrice, isAlertReached, reachedAlertNotifications } from "./utils/priceAlerts";
 
@@ -32,6 +35,7 @@ function App() {
   // effects below).
   const [savedSyncReady, setSavedSyncReady] = useState(false);
   const catalogDeals = useDeals();
+  const dealsReady = useDealsReady();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [pendingDeal, setPendingDeal] = useState(null);
   const [dealToOpen, setDealToOpen] = useState(null);
@@ -150,7 +154,7 @@ function App() {
     setUserAvatar("");
     setPhotoStatus(null);
     if (authProvider === "google") googleSignOut();
-    if (authProvider === "whatsapp") endServerSession();
+    if (hasServerAccount(authProvider)) endServerSession();
     setSavedSyncReady(false);
     setAuthProvider("");
     setUserPhone("");
@@ -248,7 +252,7 @@ function App() {
   };
 
   // WhatsApp OTP sign-in (see src/auth/whatsappOtp.js for the backend contract).
-  // Loads a WhatsApp customer's saved deals and price alerts from the server
+  // Loads a WhatsApp or Google customer's saved deals and price alerts from the server
   // and merges them with anything added during this visit (e.g. the deal that
   // prompted sign-in). Only ids are stored; deals no longer in the catalog
   // (expired) drop out.
@@ -283,13 +287,22 @@ function App() {
     loadSavedDeals();
   };
 
-  // A WhatsApp session cookie survives page reloads: restore the sign-in.
+  // A WhatsApp or Google session cookie survives page reloads: restore the
+  // sign-in, once the backend's offers are here to match saved deals and
+  // alerts against.
   useEffect(() => {
+    if (!dealsReady) return undefined;
     let cancelled = false;
-    fetchSession().then((phone) => {
-      if (cancelled || !phone) return;
-      setUserPhone(phone);
-      setAuthProvider("whatsapp");
+    fetchSession().then((session) => {
+      if (cancelled || !session) return;
+      if (session.provider === "google") {
+        setUserEmail(session.email);
+        setUserName(session.name);
+        setUserAvatar(session.picture);
+      } else {
+        setUserPhone(session.phone);
+      }
+      setAuthProvider(session.provider);
       setIsLoggedIn(true);
       loadSavedDeals();
     });
@@ -297,27 +310,30 @@ function App() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dealsReady]);
 
-  // Keep the server's copy of a WhatsApp customer's wishlist and alerts up to date.
+  // Keep the server's copy of a WhatsApp or Google customer's wishlist and alerts up to date.
   useEffect(() => {
-    if (authProvider !== "whatsapp" || !savedSyncReady) return;
+    if (!hasServerAccount(authProvider) || !savedSyncReady) return;
     saveSavedIds(savedDeals.map((deal) => deal.id)).catch(() => {});
   }, [savedDeals, authProvider, savedSyncReady]);
 
   useEffect(() => {
-    if (authProvider !== "whatsapp" || !savedSyncReady) return;
+    if (!hasServerAccount(authProvider) || !savedSyncReady) return;
     saveAlerts(
       priceAlerts.map((alert) => ({ dealId: alert.deal.id, targetPrice: alert.targetPrice, seenPrice: alert.seenPrice }))
     ).catch(() => {});
   }, [priceAlerts, authProvider, savedSyncReady]);
 
+  // Called after the server has verified the Google sign-in and started a session.
   const handleGoogleSignIn = (profile) => {
+    setUserPhone("");
     setUserEmail(profile.email);
     setUserName(profile.name);
     setUserAvatar(profile.picture);
     setAuthProvider("google");
     completeSignIn(`Welcome${profile.name ? `, ${profile.name.split(" ")[0]}` : ""}! You're signed in with Google.`);
+    loadSavedDeals();
   };
 
   const requireLogin = (destination) => {

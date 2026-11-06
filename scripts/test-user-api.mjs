@@ -37,7 +37,7 @@ test("a correct WhatsApp code sets a secure, HttpOnly session cookie", async () 
 test("the session says who is signed in; without it, 401", async () => {
   const users = memoryStore();
   const { cookie } = await signIn(users);
-  assert.deepEqual(await (await call(users, "GET", "/api/session", { cookie })).json(), { phone: PHONE });
+  assert.deepEqual(await (await call(users, "GET", "/api/session", { cookie })).json(), { provider: "whatsapp", phone: PHONE });
   assert.equal((await call(users, "GET", "/api/session")).status, 401);
   assert.equal((await call(users, "GET", "/api/session", { cookie: "ds_session=" + "0".repeat(64) })).status, 401);
 });

@@ -1,6 +1,6 @@
 // Talks to the backend's session and saved-deals endpoints (server/userApi.js).
 // The session itself is an HttpOnly cookie set by the server after a WhatsApp
-// code is verified - this file never sees the token.
+// code or a Google sign-in is verified - this file never sees the token.
 
 const request = async (path, options = {}) => {
   const response = await fetch(path, {
@@ -13,11 +13,17 @@ const request = async (path, options = {}) => {
   return data;
 };
 
-// The signed-in phone number from the session cookie, or "" if none.
+// Who the session cookie belongs to, or null:
+// { provider: "whatsapp", phone } or { provider: "google", email, name, picture }.
 export const fetchSession = () =>
   request("/api/session")
-    .then((data) => data.phone || "")
-    .catch(() => "");
+    .then((data) => (data.provider ? data : data.phone ? { provider: "whatsapp", phone: data.phone } : null))
+    .catch(() => null);
+
+// Sends Google's ID token to the server, which checks it and starts a session.
+// Resolves to { provider: "google", email, name, picture }.
+export const signInWithGoogleCredential = (credential) =>
+  request("/api/session/google", { method: "POST", body: JSON.stringify({ credential }) });
 
 export const endServerSession = () => request("/api/session/logout", { method: "POST" }).catch(() => {});
 

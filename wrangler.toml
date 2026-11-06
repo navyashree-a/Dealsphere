@@ -24,3 +24,9 @@ PINNACLE_WABA_NUMBER_ID = "1329609913570582"
 PINNACLE_OTP_TEMPLATE = "dealsphere_login_code"
 PINNACLE_OTP_LANGUAGE = "en"
 PINNACLE_OTP_BUTTON = "1"
+
+# "Sign in with Google" OAuth Client ID - public, not a secret (there is no
+# Client Secret in this project). The website's Google button and the server's
+# token check (server/googleAuth.js) both read it from here. Empty = the button
+# says Google sign-in isn't set up yet.
+GOOGLE_CLIENT_ID = "948900489319-n48j6eudddl2aal7q7vl7af79varqu1l.apps.googleusercontent.com"

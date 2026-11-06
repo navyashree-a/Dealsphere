@@ -1,14 +1,14 @@
 // Google Identity Services ("Sign in with Google") helpers.
 //
-// The OAuth Client ID is public configuration, not a secret, so it is read
-// from a Vite env variable. Set VITE_GOOGLE_CLIENT_ID in .env.local (see
-// .env.example). Without it, the Google button explains that sign-in isn't
-// configured instead of pretending to sign the customer in.
+// The OAuth Client ID is public configuration, not a secret. It is set once,
+// as GOOGLE_CLIENT_ID in wrangler.toml, and vite.config.js passes it to the
+// website as VITE_GOOGLE_CLIENT_ID (.env.local can override it locally).
+// Without it, the Google button explains that sign-in isn't set up instead of
+// pretending to sign the customer in.
 //
-// IMPORTANT: the ID token is only decoded here to show the customer's name,
-// email and photo. It is NOT verified. A real account system must send the
-// token to a backend that verifies its signature, audience and expiry before
-// trusting it (ARD FR-06, §18).
+// The ID token Google returns is never trusted here: the button sends it to
+// the server (server/googleAuth.js), which checks Google's signature, the
+// Client ID and expiry before starting a session.
 
 export const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 
@@ -35,25 +35,6 @@ export const loadGoogleScript = () => {
     document.head.appendChild(script);
   });
   return scriptPromise;
-};
-
-// Reads the (unverified) profile claims from a Google ID token.
-export const readGoogleProfile = (credential) => {
-  const payload = credential.split(".")[1];
-  const base64 = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(payload.length / 4) * 4, "=");
-  const json = decodeURIComponent(
-    atob(base64)
-      .split("")
-      .map((c) => `%${c.charCodeAt(0).toString(16).padStart(2, "0")}`)
-      .join("")
-  );
-  const claims = JSON.parse(json);
-  return {
-    email: claims.email || "",
-    name: claims.name || claims.given_name || "",
-    picture: claims.picture || "",
-    emailVerified: Boolean(claims.email_verified),
-  };
 };
 
 // Stops Google from silently re-selecting the account after sign-out.
