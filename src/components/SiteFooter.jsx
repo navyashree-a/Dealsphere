@@ -19,7 +19,7 @@ function SiteFooter({ compact = false }) {
 
           <div className="site-footer__links">
             <h3>Help</h3>
-            <a href="mailto:tech@tamadamedia.in">Contact Us</a>
+            <a href="mailto:dash.tamada@gmail.com">Contact Us</a>
             <a href="/privacy.html">Privacy Policy</a>
             <span className="site-footer__soon">FAQs coming soon</span>
           </div>
