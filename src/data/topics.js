@@ -3,7 +3,16 @@
 // and cashback for that topic. Feed offers name their topic by `id`.
 
 export const topics = [
-  { id: "shoes", name: "Shoes & sneakers", category: "Fashion", icon: "👟", description: "Sneakers, sports and formal shoes." },
+  {
+    id: "shoes",
+    name: "Shoes & sneakers",
+    category: "Fashion",
+    icon: "👟",
+    description: "Sneakers, sports and formal shoes.",
+    // Photo by Luis Felipe Lins on Unsplash (free Unsplash License):
+    // https://unsplash.com/photos/white-and-orange-athletic-sneaker-LG88A2XgIXY
+    image: "/topics/shoes.webp",
+  },
   { id: "watches", name: "Watches", category: "Fashion", icon: "⌚", description: "Analog, digital and smart watches." },
   { id: "ethnic-wear", name: "Kurtas & ethnic wear", category: "Fashion", icon: "👘", description: "Kurtas, kurta sets and festive wear." },
   { id: "smartphones", name: "Smartphones", category: "Electronics", icon: "📱", description: "5G phones from every major brand." },

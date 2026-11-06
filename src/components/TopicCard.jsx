@@ -20,11 +20,18 @@ function TopicCard({ topic, onOpen, index = 0 }) {
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
     >
-      <div className="deal-card__visual">
-        <span className="deal-card__glow" aria-hidden="true" />
-        <span className="deal-card__cube" aria-hidden="true">
-          <span className="deal-card__emoji">{topic.icon}</span>
-        </span>
+      <div className={`deal-card__visual ${topic.image ? "deal-card__visual--photo" : ""}`}>
+        {topic.image ? (
+          // Decorative: the card's title already says what it is.
+          <img className="deal-card__photo" src={topic.image} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <>
+            <span className="deal-card__glow" aria-hidden="true" />
+            <span className="deal-card__cube" aria-hidden="true">
+              <span className="deal-card__emoji">{topic.icon}</span>
+            </span>
+          </>
+        )}
         <span className="sticker">{topic.bestDiscount}</span>
       </div>
 
