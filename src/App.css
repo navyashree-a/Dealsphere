@@ -200,6 +200,10 @@
   display: flex;
   justify-content: center;
   min-height: 0;
+  /* Google's button frame is a light-scheme page. Inside the site's dark
+     scheme the browser paints an opaque white backdrop behind it; matching
+     the scheme keeps the frame transparent (no white edge). */
+  color-scheme: light;
 }
 
 .google-slot.is-ready {
