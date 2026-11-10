@@ -4,12 +4,14 @@ import ViewDealLink from "./ViewDealLink";
 import useTilt from "./useTilt";
 import { toneFor } from "../data/deals";
 import { expiryLabel, isEndingSoon } from "../data/feeds/normalizeFeed";
+import { offerImage } from "../data/offerImages";
 import { offerTypeLabel } from "../data/topics";
 
 // Coupon-ticket card. The title button stretches over the whole card, so the
 // card opens on click while the inner buttons stay independently focusable.
 function DealCard({ deal, isSaved = false, onOpen, onToggleSave, onRemove }) {
   const tilt = useTilt(6);
+  const image = offerImage(deal);
 
   return (
     <article
@@ -17,11 +19,18 @@ function DealCard({ deal, isSaved = false, onOpen, onToggleSave, onRemove }) {
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
     >
-      <div className="deal-card__visual">
-        <span className="deal-card__glow" aria-hidden="true" />
-        <span className="deal-card__cube" aria-hidden="true">
-          <span className="deal-card__emoji">{deal.icon}</span>
-        </span>
+      <div className={`deal-card__visual ${image ? "deal-card__visual--photo" : ""}`}>
+        {image ? (
+          // Decorative: the card's title already says what it is.
+          <img className="deal-card__photo" src={image} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <>
+            <span className="deal-card__glow" aria-hidden="true" />
+            <span className="deal-card__cube" aria-hidden="true">
+              <span className="deal-card__emoji">{deal.icon}</span>
+            </span>
+          </>
+        )}
         <span className="sticker">{deal.discount}</span>
       </div>
 
