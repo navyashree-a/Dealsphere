@@ -215,13 +215,11 @@ function Home({
 
               <div className="detail-info">
                 <div className="detail-info__meta">
-                  <span className="pill pill--lime">{selectedDeal.store}</span>
-                  {selectedDeal.type ? (
-                    <span className="pill">{offerTypeLabel(selectedDeal.type)}</span>
-                  ) : (
-                    <span className="pill">{selectedDeal.category}</span>
-                  )}
-                  {expiryLabel(selectedDeal) && <span className="pill pill--warn">{expiryLabel(selectedDeal)}</span>}
+                  <span className="detail-tag detail-tag--store">{selectedDeal.store}</span>
+                  <span className="detail-tag">
+                    {selectedDeal.type ? offerTypeLabel(selectedDeal.type) : selectedDeal.category}
+                  </span>
+                  {expiryLabel(selectedDeal) && <span className="detail-tag detail-tag--warn">{expiryLabel(selectedDeal)}</span>}
                 </div>
 
                 <h1>{selectedDeal.title}</h1>
